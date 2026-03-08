@@ -16,7 +16,7 @@
   "dependencies": {
     "browser-image-compression": "^2.0.2",
     "jszip": "^3.10.1",
-    "svgo": "^4.0.0",
+    "svgo": "^4.0.1",
     "vite-plugin-node-polyfills": "^0.24.0",
     "vite-plugin-top-level-await": "^1.6.0",
     "vite-plugin-wasm": "^3.5.0"
