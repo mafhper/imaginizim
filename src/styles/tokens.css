@@ -1,0 +1,76 @@
+:root {
+  --font-ui: 'Manrope', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Sora', 'Manrope', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Consolas', monospace;
+
+  --bg: #06080d;
+  --bg-base: #070a10;
+  --bg-elevated: #0c111a;
+  --bg-card: #101724;
+  --bg-soft: #141d2c;
+  --glass: rgba(10, 15, 24, 0.86);
+
+  --text-primary: #e8edf7;
+  --text-secondary: #bbc5d8;
+  --text-muted: #96a4bd;
+
+  --accent: #6ad6c3;
+  --accent-strong: #8de4d4;
+  --accent-ink: #09211f;
+  --accent-aurora-a: #5f77ff;
+  --accent-aurora-b: #5bcfbf;
+  --accent-aurora-c: #d88ee2;
+
+  --border: rgba(196, 210, 240, 0.12);
+  --border-strong: rgba(196, 210, 240, 0.2);
+  --hairline: rgba(255, 255, 255, 0.07);
+  --rail-bg: rgba(19, 27, 40, 0.72);
+  --rail-chip: rgba(28, 39, 56, 0.72);
+  --rail-chip-active: rgba(109, 127, 162, 0.2);
+
+  --danger: #ff7f8e;
+
+  --radius-xl: 8px;
+  --radius-lg: 8px;
+  --radius-md: 8px;
+  --radius-sm: 8px;
+
+  --shadow-lg: 0 24px 64px rgba(2, 5, 11, 0.46);
+  --shadow-md: 0 16px 34px rgba(2, 5, 11, 0.33);
+
+  --container: 1320px;
+  --toolbar-height: 74px;
+  --comparison-viewport-height: clamp(280px, 56vh, 640px);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f3f6fb;
+    --bg-base: #f7f9fd;
+    --bg-elevated: #ffffff;
+    --bg-card: #eef2f8;
+    --bg-soft: #e8edf6;
+    --glass: rgba(248, 251, 255, 0.92);
+
+    --text-primary: #101828;
+    --text-secondary: #3d4a63;
+    --text-muted: #5f6f88;
+
+    --accent: #247f74;
+    --accent-strong: #2f9a8c;
+    --accent-ink: #f2fffc;
+    --accent-aurora-a: #7887ff;
+    --accent-aurora-b: #4bbca8;
+    --accent-aurora-c: #ca7ad5;
+
+    --border: rgba(35, 52, 80, 0.13);
+    --border-strong: rgba(35, 52, 80, 0.24);
+    --hairline: rgba(12, 26, 44, 0.09);
+    --rail-bg: rgba(232, 237, 246, 0.84);
+    --rail-chip: rgba(223, 230, 242, 0.86);
+    --rail-chip-active: rgba(74, 101, 148, 0.22);
+
+    --shadow-lg: 0 24px 56px rgba(24, 44, 76, 0.17);
+    --shadow-md: 0 12px 28px rgba(24, 44, 76, 0.12);
+  }
+}

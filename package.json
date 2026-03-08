@@ -4,20 +4,64 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host 127.0.0.1 --port 4321",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview --host 127.0.0.1 --port 4321",
+    "lighthouse": "npm run build && node scripts/run-lighthouse.mjs all",
+    "lighthouse:desktop": "node scripts/run-lighthouse.mjs desktop",
+    "lighthouse:mobile": "node scripts/run-lighthouse.mjs mobile",
+    "lint": "eslint \"src/**/*.{ts,tsx,js}\" \"tests/**/*.{ts,js}\" \"vite.config.js\" \"vitest.config.ts\" \"eslint.config.js\" \"tailwind.config.js\"",
+    "test": "vitest run -c vitest.config.ts",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,ts}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{html,css,json,md}": [
+      "prettier --write"
+    ]
   },
   "devDependencies": {
-    "rollup-plugin-node-polyfills": "^0.2.1",
+    "@eslint/js": "^9.39.1",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@typescript-eslint/eslint-plugin": "^8.56.1",
+    "@typescript-eslint/parser": "^8.56.1",
+    "@vitejs/plugin-react-swc": "^4.2.2",
+    "autoprefixer": "^10.4.21",
+    "chrome-launcher": "^1.2.1",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "globals": "^17.3.0",
+    "husky": "^9.1.7",
+    "lighthouse": "^12.8.2",
+    "lint-staged": "^16.2.7",
+    "playwright": "^1.58.2",
+    "postcss": "^8.5.6",
+    "prettier": "^3.8.1",
+    "tailwindcss": "^3.4.17",
     "terser": "^5.44.1",
-    "vite": "^7.2.4"
+    "typescript": "^5.9.3",
+    "vite": "^7.2.4",
+    "vitest": "^4.0.18"
   },
   "dependencies": {
     "browser-image-compression": "^2.0.2",
+    "clsx": "^2.1.1",
+    "i18next": "^25.8.4",
+    "i18next-browser-languagedetector": "^8.2.0",
     "jszip": "^3.10.1",
+    "lucide-react": "^0.554.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-router-dom": "^7.9.4",
     "svgo": "^4.0.1",
-    "vite-plugin-node-polyfills": "^0.24.0",
     "vite-plugin-top-level-await": "^1.6.0",
     "vite-plugin-wasm": "^3.5.0"
   }

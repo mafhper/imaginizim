@@ -1,91 +1,61 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Imaginizim - Image Compression</title>
-    <meta name="description" content="Compress images 100% client-side. Zero upload, zero servers. Magic compression for PNG, JPEG, and SVG.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./style.css">
+
+    <title>Imaginizim | Otimização local de imagens</title>
+    <meta
+      name="description"
+      content="Compressão local de imagens com comparação sob demanda, formatos modernos e workflow rápido direto no navegador."
+    />
+
+    <link rel="manifest" href="./manifest.json" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="./icons/light/favicon.svg"
+      media="(prefers-color-scheme: light)"
+    />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="./icons/dark/favicon.svg"
+      media="(prefers-color-scheme: dark)"
+    />
+    <link rel="icon" type="image/png" sizes="32x32" href="./icons/light/favicon-32x32.png" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="./icons/dark/favicon-32x32.png"
+      media="(prefers-color-scheme: dark)"
+    />
+    <link rel="apple-touch-icon" href="./icons/light/apple-touch-icon.png" />
+
+    <meta name="theme-color" content="#0b0f14" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f5f9fd" media="(prefers-color-scheme: light)" />
+
+    <meta property="og:title" content="Imaginizim" />
+    <meta
+      property="og:description"
+      content="Otimização local de imagens com workflow rápido, privado e preparado para produção."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://mafhper.github.io/imaginizim/" />
+    <meta property="og:image" content="./assets/og-image.png" />
+    <link rel="canonical" href="https://mafhper.github.io/imaginizim/" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Imaginizim" />
+    <meta
+      name="twitter:description"
+      content="Compressão local de imagens com comparação sob demanda e formatos modernos."
+    />
+    <meta name="twitter:image" content="./assets/twitter-image.png" />
   </head>
   <body>
-    <div id="app">
-    <header class="header">
-      <div class="logo">
-        <span class="logo-icon">iZ</span>
-        <h1>Imaginizim</h1>
-      </div>
-      <p class="tagline">Magic compression. Zero upload.</p>
-    </header>
-
-    <main>
-      <div id="dropzone" class="dropzone">
-        <div class="dropzone-content">
-          <div class="icon-cloud">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          </div>
-          <h2>Drop images here</h2>
-          <p>or click to browse</p>
-          <div class="supported-formats">
-            <span>PNG</span>
-            <span>JPG</span>
-            <span>SVG</span>
-          </div>
-        </div>
-        <input type="file" id="fileInput" multiple accept="image/png,image/jpeg,image/jpg,image/svg+xml" hidden>
-      </div>
-
-      <div id="actionsBar" class="actions-bar hidden">
-        <div class="stats">
-          <span class="stat-label">Total Saved:</span>
-          <span id="totalSaved" class="stat-value">0 MB</span>
-        </div>
-        <button id="downloadAllBtn" class="btn-primary">
-          <span>Download All (ZIP)</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        </button>
-      </div>
-
-      <div id="fileList" class="file-list"></div>
-    </main>
-
-    <footer>
-      <p>Powered by WebAssembly. 100% Client-Side.</p>
-    </footer>
-  </div>
-
-  <!-- Preview Modal -->
-  <div id="previewModal" class="modal hidden">
-    <div class="modal-backdrop"></div>
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Preview</h3>
-        <button id="closeModalBtn" class="btn-icon">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="preview-container">
-          <img id="previewImage" src="" alt="Preview">
-        </div>
-        <div class="preview-stats">
-          <div class="stat-item">
-            <span class="label">Original</span>
-            <span id="previewOriginalSize" class="value"></span>
-          </div>
-          <div class="stat-arrow">→</div>
-          <div class="stat-item">
-            <span class="label">Optimized</span>
-            <span id="previewNewSize" class="value"></span>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button id="downloadPreviewBtn" class="btn-primary">Download</button>
-      </div>
-    </div>
-  </div>
-    <script type="module" src="/src/main.js"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

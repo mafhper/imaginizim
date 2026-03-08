@@ -3,6 +3,7 @@ node_modules/
 
 # Build output
 dist/
+output
 
 # Vite cache
 .vite/
@@ -25,3 +26,24 @@ npm-debug.log*
 # Environment
 .env
 .env.local
+
+# Private files
+AGENTS.md
+.codex/
+.dev/
+_dev/
+.gemini/
+.claude/
+.qwen/
+.kimi/
+.agents/
+.gemini-clipboard/
+.roo/
+.cursor/
+.windsurf/
+.claude-code/
+GEMINI.md
+CLAUDE.md
+QWEN.md
+KIMI.md
+performance-reports/*
