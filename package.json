@@ -43,7 +43,7 @@
     "lighthouse": "^12.8.2",
     "lint-staged": "^16.2.7",
     "playwright": "^1.58.2",
-    "postcss": "^8.5.6",
+    "postcss": "^8.5.8",
     "prettier": "^3.8.1",
     "tailwindcss": "^4.2.1",
     "terser": "^5.44.1",
