@@ -37,11 +37,12 @@ try {
 }
 
 function run(command, args, options = {}) {
-  const result = spawnSync(command, args, {
+  const invocation = resolveInvocation(command, args);
+  const result = spawnSync(invocation.command, invocation.args, {
     cwd: options.cwd ?? repoRoot,
     stdio: options.capture ? ['inherit', 'pipe', 'pipe'] : 'inherit',
     encoding: 'utf8',
-    shell: process.platform === 'win32'
+    shell: false
   });
 
   if (result.error && !options.allowFailure) {
@@ -55,6 +56,17 @@ function run(command, args, options = {}) {
   }
 
   return result.stdout ?? '';
+}
+
+function resolveInvocation(command, args) {
+  if (process.platform === 'win32' && command.toLowerCase().endsWith('.cmd')) {
+    return {
+      command: 'cmd.exe',
+      args: ['/d', '/s', '/c', command, ...args]
+    };
+  }
+
+  return { command, args };
 }
 
 function resolveDefaultRef() {
