@@ -3,6 +3,10 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=22.19.0",
+    "npm": ">=10"
+  },
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 4321",
     "build": "vite build",
@@ -10,10 +14,14 @@
     "lighthouse": "npm run build && node scripts/run-lighthouse.mjs all",
     "lighthouse:desktop": "node scripts/run-lighthouse.mjs desktop",
     "lighthouse:mobile": "node scripts/run-lighthouse.mjs mobile",
+    "format:check": "prettier --check . --ignore-path .gitignore",
     "lint": "eslint \"src/**/*.{ts,tsx,js}\" \"tests/**/*.{ts,js}\" \"vite.config.js\" \"vitest.config.ts\" \"eslint.config.js\" \"tailwind.config.js\"",
     "test": "vitest run -c vitest.config.ts",
     "typecheck": "tsc --noEmit",
-    "format": "prettier --write .",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build",
+    "preflight": "npm run check",
+    "preflight:clean": "node scripts/preflight-clean.mjs",
+    "format": "prettier --write . --ignore-path .gitignore",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -26,7 +34,7 @@
     ]
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
+    "@eslint/js": "^9.39.4",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "@typescript-eslint/eslint-plugin": "^8.57.0",
@@ -40,7 +48,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "globals": "^17.4.0",
     "husky": "^9.1.7",
-    "lighthouse": "^12.8.2",
+    "lighthouse": "^13.0.3",
     "lint-staged": "^16.4.0",
     "playwright": "^1.58.2",
     "postcss": "^8.5.8",
@@ -66,6 +74,7 @@
     "vite-plugin-wasm": "^3.6.0"
   },
   "overrides": {
+    "flatted": "3.4.0",
     "tailwindcss": "3.4.19",
     "vite": "7.2.4"
   }

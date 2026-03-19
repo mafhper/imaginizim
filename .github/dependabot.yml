@@ -8,9 +8,15 @@ updates:
     labels:
       - dependencies
     ignore:
-      - dependency-name: "vite"
+      - dependency-name: 'vite'
         update-types:
-          - "version-update:semver-major"
+          - 'version-update:semver-major'
+      - dependency-name: '@eslint/js'
+        update-types:
+          - 'version-update:semver-major'
+      - dependency-name: 'eslint'
+        update-types:
+          - 'version-update:semver-major'
 
   - package-ecosystem: github-actions
     directory: /
