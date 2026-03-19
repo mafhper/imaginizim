@@ -14,7 +14,20 @@ const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'imaginizim-preflight-'));
 const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 
 try {
-  run('git', ['worktree', 'add', '--detach', tempDir, ref]);
+  run('git', [
+    '-c',
+    'core.autocrlf=false',
+    '-c',
+    'core.eol=lf',
+    'worktree',
+    'add',
+    '--detach',
+    tempDir,
+    ref
+  ]);
+  run('git', ['config', 'core.autocrlf', 'false'], { cwd: tempDir });
+  run('git', ['config', 'core.eol', 'lf'], { cwd: tempDir });
+  run('git', ['reset', '--hard', 'HEAD'], { cwd: tempDir });
   run(npmCommand, ['ci'], { cwd: tempDir });
   run(npmCommand, ['run', 'check'], { cwd: tempDir });
 } finally {
