@@ -1,5 +1,6 @@
 import js from '@eslint/js';
-import prettier from 'eslint-plugin-prettier/recommended';
+import eslintConfigPrettier from 'eslint-config-prettier';
+import eslintPluginPrettier from 'eslint-plugin-prettier';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import reactHooks from 'eslint-plugin-react-hooks';
@@ -17,7 +18,7 @@ export default [
     ]
   },
   js.configs.recommended,
-  prettier,
+  eslintConfigPrettier,
   {
     files: ['**/*.{js,ts,tsx}'],
     languageOptions: {
@@ -37,11 +38,13 @@ export default [
       }
     },
     plugins: {
+      prettier: eslintPluginPrettier,
       '@typescript-eslint': tsPlugin,
       'react-hooks': reactHooks
     },
     rules: {
       'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'prettier/prettier': 'error',
       'no-undef': 'off',
       'no-unused-vars': 'off',
       ...reactHooks.configs.recommended.rules,
