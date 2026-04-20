@@ -7,6 +7,10 @@ updates:
     open-pull-requests-limit: 10
     labels:
       - dependencies
+    groups:
+      typescript-eslint:
+        patterns:
+          - '@typescript-eslint/*'
     ignore:
       - dependency-name: 'vite'
         update-types:
