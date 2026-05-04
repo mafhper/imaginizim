@@ -37,8 +37,8 @@
     "@eslint/js": "^9.39.4",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
-    "@typescript-eslint/eslint-plugin": "^8.58.2",
-    "@typescript-eslint/parser": "^8.58.2",
+    "@typescript-eslint/eslint-plugin": "^8.59.0",
+    "@typescript-eslint/parser": "^8.59.0",
     "@vitejs/plugin-react-swc": "^4.3.0",
     "autoprefixer": "^10.5.0",
     "chrome-launcher": "^1.2.1",
@@ -46,34 +46,35 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
     "eslint-plugin-react-hooks": "^7.1.1",
-    "globals": "^17.5.0",
+    "globals": "^17.6.0",
     "husky": "^9.1.7",
-    "lighthouse": "^13.1.0",
+    "lighthouse": "^13.2.0",
     "lint-staged": "^16.4.0",
     "playwright": "^1.59.1",
-    "postcss": "^8.5.10",
+    "postcss": "^8.5.13",
     "prettier": "^3.8.3",
     "tailwindcss": "3.4.19",
-    "terser": "^5.46.1",
+    "terser": "^5.46.2",
     "typescript": "^6.0.3",
     "vite": "7.3.2",
-    "vitest": "^4.1.4"
+    "vitest": "^4.1.5"
   },
   "dependencies": {
     "browser-image-compression": "^2.0.2",
     "clsx": "^2.1.1",
-    "i18next": "^26.0.6",
+    "i18next": "^26.0.8",
     "i18next-browser-languagedetector": "^8.2.1",
     "jszip": "^3.10.1",
     "lucide-react": "^1.8.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "react-router-dom": "^7.14.1",
+    "react-router-dom": "^7.14.2",
     "svgo": "^4.0.1",
     "vite-plugin-top-level-await": "^1.6.0",
     "vite-plugin-wasm": "^3.6.0"
   },
   "overrides": {
-    "flatted": "3.4.2"
+    "flatted": "3.4.2",
+    "uuid": "^14.0.0"
   }
 }
