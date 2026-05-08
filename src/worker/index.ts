@@ -2,6 +2,7 @@ import { analyzeRasterProfile } from './analysis/imageProfile';
 import { estimateQualityScore } from './analysis/quality';
 import { compressRaster, convertSvgToRasterBlob } from './codecs/raster';
 import { optimizeSvgBlob } from './codecs/svg';
+import { blobMatchesFormat } from '../export/formats';
 import { buildCandidates, getQualityThreshold } from './selection/strategy';
 import type { ImageProfile, WorkerCompressionRequest, WorkerCompressionResponse } from './types';
 
@@ -113,6 +114,7 @@ self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
       qualityScore: number;
       strategyUsed: string;
     }> = [];
+    let lastCandidateError: unknown = null;
 
     for (const [index, candidate] of candidates.entries()) {
       try {
@@ -138,6 +140,10 @@ self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
           progress: Math.min(94, progressBase + progressSpan),
           stage: isAutomaticSelection ? 'evaluating' : 'encoding-manual'
         } satisfies WorkerCompressionResponse);
+        if (!(await blobMatchesFormat(blob, candidate.format))) {
+          throw new Error(`Encoded blob does not match requested format: ${candidate.format}`);
+        }
+
         const qualityScore = isAutomaticSelection
           ? await estimateQualityScore(originalReference, blob)
           : 1;
@@ -148,12 +154,13 @@ self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
           qualityScore,
           strategyUsed: candidate.strategyUsed
         });
-      } catch {
+      } catch (error) {
+        lastCandidateError = error;
         // Ignore unsupported/failed candidate and continue.
       }
     }
 
-    if (isAutomaticSelection) {
+    if (isAutomaticSelection && (await blobMatchesFormat(file, type))) {
       evaluated.push({
         blob: file,
         format: type,
@@ -163,6 +170,9 @@ self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
     }
 
     if (evaluated.length === 0) {
+      if (lastCandidateError instanceof Error) {
+        throw lastCandidateError;
+      }
       throw new Error('No valid compression candidate was produced.');
     }
 

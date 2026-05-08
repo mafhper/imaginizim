@@ -15,6 +15,7 @@ import {
   setMobileNavOpen
 } from './state/appState';
 import { downloadBlob } from './utils/downloadBlob';
+import { exportFileNameForRecord } from './export/formats';
 import { applyProjectMeta } from './utils/projectMeta';
 import {
   applyQueueDensityUi,
@@ -190,7 +191,7 @@ previewController = setupPreview({
   getComparableRecords: () => compression.getComparableRecords(),
   onDownload: (record) => {
     if (!record.blob) return;
-    downloadBlob(record.blob, `optimized-${record.file.name}`);
+    downloadBlob(record.blob, exportFileNameForRecord(record));
   }
 });
 
@@ -226,7 +227,7 @@ fileList.addEventListener('click', (event) => {
   const record = compression.getRecord(id);
   if (!record?.blob) return;
 
-  downloadBlob(record.blob, `optimized-${record.file.name}`);
+  downloadBlob(record.blob, exportFileNameForRecord(record));
 });
 
 qualityRange.addEventListener('input', () => {
