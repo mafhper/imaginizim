@@ -1,71 +1,63 @@
 import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { PageCTA } from '../components/PageCTA';
-import {
-  ContentBandSection,
-  ContentHeroSection,
-  EvidenceCardRow
-} from '../components/content/SectionTemplates';
-import { BrowserIcon, ClockIcon, GithubIcon } from '../components/icons/AppIcons';
+import { BrowserIcon, GithubIcon } from '../components/icons/AppIcons';
 import { AnalyzeIcon, ExportIcon, FormatIcon, OptimizeIcon } from '../components/icons/StepIcons';
+import { Button } from '../components/ui/Button';
 
-const introCards = [
+const flowSteps = [
   {
-    title: 'Local',
-    subtitle: 'Sem etapa externa',
-    description: 'Roda no navegador e evita etapas externas no fluxo principal.',
+    title: 'Entrada local',
+    description: 'Você solta um lote e os arquivos continuam na sessão do navegador.',
     icon: BrowserIcon
   },
   {
-    title: 'Rápido',
-    subtitle: 'Resultado direto',
-    description: 'Entra no lote, comprime e devolve o resultado sem ruído.',
-    icon: ClockIcon
-  },
-  {
-    title: 'Aberto',
-    subtitle: 'Código auditável',
-    description: 'Código auditável hoje e base pronta para desktop depois.',
-    icon: GithubIcon
-  },
-  {
-    title: 'Analisa',
-    subtitle: 'Lê o arquivo',
-    description: 'Entende o que precisa ser preservado antes de comprimir.',
+    title: 'Decisão curta',
+    description:
+      'O modo automático escolhe uma saída segura; os ajustes ficam disponíveis quando importam.',
     icon: AnalyzeIcon
   },
   {
-    title: 'Otimiza',
-    subtitle: 'Escolhe a saída',
-    description: 'Decide a melhor compressão de acordo com o formato e o objetivo.',
-    icon: OptimizeIcon
-  },
-  {
-    title: 'Exporta',
-    subtitle: 'Fecha o lote',
-    description: 'Entrega o arquivo final pronto para baixar sozinho ou em lote.',
+    title: 'Entrega revisável',
+    description: 'Compare sob demanda e baixe item por item ou o lote pronto em ZIP.',
     icon: ExportIcon
   }
 ];
 
-const formatCards = [
+const principles = [
   {
-    title: 'JPEG',
-    description: 'Escolha padrão para fotos e imagens com muitas cores.',
-    goodFor: 'Publicação ampla e peso controlado.',
-    avoid: 'Quando o arquivo precisar de transparência.'
+    title: 'Sem fila remota',
+    description: 'O processamento principal não cria uma etapa escondida fora do seu navegador.',
+    icon: BrowserIcon
   },
   {
-    title: 'PNG',
-    description: 'Melhor para logo, interface, ícone e transparência.',
-    goodFor: 'Bordas limpas e alpha preservado.',
-    avoid: 'Lotes de fotos, porque tende a pesar mais.'
+    title: 'Controle quando precisa',
+    description:
+      'Qualidade, escala, formato e modo existem para casos específicos, não para atrapalhar o início.',
+    icon: OptimizeIcon
   },
   {
-    title: 'WebP / AVIF',
-    description: 'Use quando a prioridade for reduzir peso na web.',
-    goodFor: 'Entrega moderna e payload menor.',
-    avoid: 'Contextos que ainda pedem fallback amplo.'
+    title: 'Base auditável',
+    description: 'O projeto é aberto e mantém o core preparado para uma casca desktop futura.',
+    icon: GithubIcon
+  }
+];
+
+const formats = [
+  {
+    title: 'Fotos',
+    recommendation: 'JPEG, WebP ou AVIF',
+    description: 'Use quando o objetivo for reduzir peso mantendo aparência natural.'
+  },
+  {
+    title: 'UI, logos e transparência',
+    recommendation: 'PNG ou WebP',
+    description: 'Preserva bordas limpas, alpha e elementos gráficos com menos surpresa.'
+  },
+  {
+    title: 'Sem decisão manual',
+    recommendation: 'Automático',
+    description: 'Bom padrão para lotes mistos ou quando a prioridade é terminar rápido.'
   }
 ];
 
@@ -87,104 +79,114 @@ export function AboutPage() {
 
   return (
     <div data-page="about" className="py-14 md:py-24">
-      <div className="site-shell space-y-14 md:space-y-24">
-        <ContentHeroSection
-          testId="about-hero"
-          layout="stacked"
-          copy={
-            <>
-              <p className="section-label mb-3">Sobre</p>
-              <h1 className="font-display text-4xl font-bold text-foreground md:text-5xl">
-                Um compressor local pensado para uso real
-              </h1>
-              <p className="hero-copy-lead mt-4 text-lg leading-8 text-muted-foreground">
-                O Imaginizim existe para reduzir peso sem transformar a tarefa em uma tela técnica.
-                Você envia o arquivo, recebe o resultado e segue o fluxo.
-              </p>
-            </>
-          }
-          visual={
-            <EvidenceCardRow
-              testId="about-workflow-cards"
-              columnsClassName="md:grid-cols-2 xl:grid-cols-3"
-              className="w-full"
-            >
-              {introCards.map((step) => {
-                const Icon = step.icon;
-                return (
-                  <article key={step.title} className="glass-card p-6 md:p-7">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-[8px] border border-primary/20 bg-primary/10 text-primary">
-                      <Icon className="h-7 w-7" />
-                    </div>
-                    <h3 className="mt-5 font-display text-[1.65rem] font-semibold text-foreground">
-                      {step.title}
-                    </h3>
-                    <p className="mt-2 text-base font-medium text-primary/80">{step.subtitle}</p>
-                    <p className="mt-4 text-sm leading-7 text-muted-foreground">
-                      {step.description}
-                    </p>
-                  </article>
-                );
-              })}
-            </EvidenceCardRow>
-          }
-          visualClassName="content-hero-visual-wide"
-        />
+      <div className="site-shell space-y-12 md:space-y-18">
+        <section data-testid="about-hero" className="content-plain-hero">
+          <div className="max-w-3xl">
+            <p className="section-label mb-3">Sobre</p>
+            <h1 className="font-display text-4xl font-bold leading-tight text-foreground md:text-5xl">
+              Compressão de imagem sem transformar o fluxo em painel técnico
+            </h1>
+            <p className="hero-copy-lead mt-5 text-lg leading-8 text-muted-foreground">
+              O Imaginizim é uma ferramenta local-first para preparar assets com menos peso,
+              comparação sob demanda e comandos que aparecem quando realmente ajudam.
+            </p>
+          </div>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link to="/">
+              <Button variant="hero" size="sm">
+                Começar pelo lote
+              </Button>
+            </Link>
+            <Link to="/faq?section=privacidade">
+              <Button variant="hero-outline" size="sm">
+                Ver privacidade
+              </Button>
+            </Link>
+          </div>
+        </section>
 
-        <section id="formatos">
-          <ContentBandSection
-            testId="about-formats-band"
-            centered
-            kicker="Formatos"
-            title="Formatos principais"
-            description={
-              <p className="hero-copy-lead">
-                Foto vai para JPEG, transparência vai para PNG e peso menor pede WebP ou AVIF.
-              </p>
-            }
-          >
-            <EvidenceCardRow testId="about-formats-cards">
-              {formatCards.map((format) => (
-                <article key={format.title} className="glass-card p-6 md:p-7">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-[8px] border border-primary/20 bg-primary/10 text-primary">
-                    <FormatIcon className="h-7 w-7" />
+        <section id="fluxo" className="content-band-lite" data-testid="about-flow-band">
+          <div className="content-band-lite__header">
+            <p className="section-label mb-3">Fluxo</p>
+            <h2 className="font-display text-3xl font-bold text-foreground">
+              Três decisões, sem cerimônia
+            </h2>
+          </div>
+          <div className="process-lane mt-8">
+            {flowSteps.map((step, index) => {
+              const Icon = step.icon;
+              return (
+                <article key={step.title} className="process-step">
+                  <div className="process-step__index">{index + 1}</div>
+                  <div className="process-step__icon">
+                    <Icon className="h-5 w-5" />
                   </div>
-                  <h3 className="mt-5 font-display text-[1.65rem] font-semibold text-foreground">
-                    {format.title}
+                  <h3 className="font-display text-xl font-semibold text-foreground">
+                    {step.title}
                   </h3>
-                  <p className="mt-3 text-sm leading-7 text-muted-foreground">
-                    {format.description}
-                  </p>
-                  <div className="mt-5 space-y-2 text-sm leading-6 text-muted-foreground">
-                    <p>
-                      <span className="font-medium text-foreground">Melhor para:</span>{' '}
-                      {format.goodFor}
-                    </p>
-                    <p>
-                      <span className="font-medium text-foreground">Evite se:</span> {format.avoid}
+                  <p className="mt-2 text-sm leading-7 text-muted-foreground">{step.description}</p>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="grid gap-4 lg:grid-cols-3">
+          {principles.map((item) => {
+            const Icon = item.icon;
+            return (
+              <article key={item.title} className="principle-card">
+                <Icon className="h-5 w-5 text-primary" />
+                <h3 className="mt-4 font-display text-xl font-semibold text-foreground">
+                  {item.title}
+                </h3>
+                <p className="mt-2 text-sm leading-7 text-muted-foreground">{item.description}</p>
+              </article>
+            );
+          })}
+        </section>
+
+        <section id="formatos" className="content-band-lite" data-testid="about-formats-band">
+          <div className="grid gap-8 lg:grid-cols-[0.86fr_1.14fr] lg:items-start">
+            <div>
+              <p className="section-label mb-3">Formatos</p>
+              <h2 className="font-display text-3xl font-bold text-foreground">
+                O formato deve servir ao arquivo
+              </h2>
+              <p className="mt-4 max-w-xl text-base leading-7 text-muted-foreground">
+                O padrão automático cobre o uso comum. Quando o destino pede um formato específico,
+                os controles continuam próximos.
+              </p>
+            </div>
+            <div className="format-list">
+              {formats.map((format) => (
+                <article key={format.title} className="format-row">
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[8px] border border-primary/20 bg-primary/10 text-primary">
+                    <FormatIcon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="flex flex-wrap items-baseline gap-2">
+                      <h3 className="font-display text-lg font-semibold text-foreground">
+                        {format.title}
+                      </h3>
+                      <span className="text-xs font-medium text-primary">
+                        {format.recommendation}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                      {format.description}
                     </p>
                   </div>
                 </article>
               ))}
-            </EvidenceCardRow>
-
-            <article className="glass-card mt-4 p-5 md:p-6">
-              <p className="section-label mb-3">Automático</p>
-              <h3 className="font-display text-[1.65rem] font-semibold text-foreground">
-                Deixe no automático quando não quiser decidir manualmente
-              </h3>
-              <p className="mt-3 text-sm leading-7 text-muted-foreground">
-                Esse modo existe para reduzir dúvida. O arquivo é lido e a saída é escolhida sem te
-                empurrar detalhe técnico.
-              </p>
-            </article>
-          </ContentBandSection>
+            </div>
+          </div>
         </section>
 
         <PageCTA
           label="FAQ"
-          title="Se restou dúvida, vá direto às respostas curtas"
-          description="A página de FAQ concentra perguntas frequentes e também o tópico de privacidade."
+          title="Dúvidas curtas ficam concentradas em uma página"
+          description="Privacidade, offline, comparação e uso em produção estão explicados sem rodeio."
           linkTo="/faq"
           linkLabel="Abrir FAQ"
         />

@@ -4,6 +4,7 @@ import { RouteFallback } from '../components/RouteFallback';
 import { useCompressionApp } from '../providers/CompressionProvider';
 import { BrowserIcon, DownloadIcon, GithubIcon, ImageIcon } from '../components/icons/AppIcons';
 import { Button } from '../components/ui/Button';
+import { LiquidMeshBackdrop } from '../components/home/LiquidMeshBackdrop';
 
 const ComparisonModal = lazy(() =>
   import('../components/ComparisonModal').then((module) => ({ default: module.ComparisonModal }))
@@ -82,24 +83,21 @@ export function HomePage() {
   return (
     <div
       data-page="home"
-      className="relative flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center overflow-hidden px-4"
+      className="home-hero relative flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center overflow-hidden px-4"
     >
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-[18%] h-[460px] w-[460px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(94,234,212,0.08),transparent_62%)]" />
-        <div className="absolute inset-x-0 bottom-0 h-48 bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.08))]" />
-      </div>
+      <LiquidMeshBackdrop />
 
-      <div className="relative z-10 mb-10 max-w-2xl text-center">
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5">
+      <div className="home-hero__copy relative z-10 mb-10 max-w-3xl text-center">
+        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/24 bg-background/45 px-4 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur">
           <BrowserIcon className="h-3.5 w-3.5 text-primary" />
           <span className="text-xs font-medium text-primary">Compressão 100% no navegador</span>
         </div>
         <h1 className="font-display mb-5 text-4xl font-bold leading-tight text-foreground md:text-6xl">
-          Otimize suas imagens <span className="text-gradient">sem sair do browser</span>
+          Otimize suas imagens em uma superfície local e direta
         </h1>
-        <p className="mx-auto max-w-lg text-lg text-muted-foreground">
-          Comprima, compare e exporte mais rápido sem abrir mão do controle do asset. Tudo roda no
-          navegador, sem etapas extras.
+        <p className="mx-auto max-w-[58ch] text-lg leading-8 text-muted-foreground">
+          Comprima, compare e exporte lotes sem entregar seus arquivos para uma fila remota. O fluxo
+          começa no navegador e termina com o download pronto.
         </p>
       </div>
 
@@ -132,7 +130,7 @@ export function HomePage() {
               isDragging ? 'scale-[1.02] border-primary/60 bg-primary/5' : 'hover:border-primary/40'
             }`}
           >
-            <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-[hsl(280,60%,50%)]/5 opacity-60" />
+            <div className="absolute inset-0 bg-gradient-to-b from-primary/8 via-transparent to-[hsl(214,70%,56%)]/8 opacity-70" />
             <div className="relative z-10">
               <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 transition-all duration-300">
                 <ImageIcon className="h-7 w-7 text-primary" />
@@ -146,8 +144,7 @@ export function HomePage() {
                 Compatível com PNG, JPG, SVG, WebP e AVIF.
               </p>
               <p className="mb-8 text-xs text-muted-foreground/70">
-                Monte o lote, ajuste o que precisa e processe quando o resultado fizer sentido para
-                esse arquivo.
+                Monte o lote, ajuste o necessário e processe quando o resultado fizer sentido.
               </p>
               <div className="flex items-center justify-center gap-2">
                 {['PNG', 'JPG', 'SVG', 'WebP', 'AVIF'].map((format) => (
@@ -164,7 +161,7 @@ export function HomePage() {
         </label>
       </div>
 
-      <div className="relative z-10 mt-10 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
+      <div className="home-hero__proof relative z-10 mt-10 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
         <div className="flex items-center gap-2">
           <BrowserIcon className="h-4 w-4 text-primary" />
           <span>Processamento local</span>

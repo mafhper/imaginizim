@@ -88,10 +88,31 @@ export function CompressorView(props: CompressorViewProps) {
   const allDone =
     files.length > 0 && files.every((file) => file.status === 'done' || file.status === 'error');
   const savingsPercent = totalOriginal > 0 ? (totalSavedBytes / totalOriginal) * 100 : 0;
+  const queuedCount = files.filter((file) => file.status === 'queued').length;
   const processingCount = files.filter((file) => file.status === 'processing').length;
   const errorCount = files.filter((file) => file.status === 'error').length;
   const shouldSuggestModernFormat =
     optimizationMode === 'max-compression' && outputFormat === 'original';
+  const selectedActionDisabled =
+    !selectedFile ||
+    (!hasProcessedOnce &&
+      selectedFile.status !== 'done' &&
+      selectedFile.status !== 'error' &&
+      selectedFile.status !== 'queued');
+  const primaryActionLabel =
+    processingCount > 0
+      ? 'Processando fila'
+      : hasProcessedOnce
+        ? 'Reprocessar fila'
+        : 'Processar fila';
+  const primaryActionHint =
+    processingCount > 0
+      ? `${processingCount} em andamento. Você pode acompanhar a fila sem disparar outro lote.`
+      : queuedCount > 0
+        ? `${queuedCount} ${queuedCount === 1 ? 'arquivo aguarda' : 'arquivos aguardam'} os parâmetros atuais.`
+        : hasProcessedOnce
+          ? 'Reprocessa o lote com os parâmetros atuais.'
+          : 'Usa os parâmetros atuais para fechar o primeiro lote.';
 
   const handleMoreFiles = (fileList: FileList | null) => {
     if (!fileList) return;
@@ -471,42 +492,46 @@ export function CompressorView(props: CompressorViewProps) {
               </div>
             </div>
 
-            <div className="glass-panel space-y-3 p-5">
+            <div className="glass-panel space-y-4 p-5">
+              <div>
+                <p className="section-label mb-2">Próxima ação</p>
+                <p className="text-sm leading-6 text-muted-foreground">{primaryActionHint}</p>
+              </div>
               <Button
                 id="optimizeQueueBtn"
                 variant="hero"
                 className="w-full"
                 onClick={onReprocessAll}
+                disabled={processingCount > 0}
               >
-                <Wand2 className="h-4 w-4" />{' '}
-                {hasProcessedOnce ? 'Reprocessar fila' : 'Processar fila'}
+                <Wand2 className="h-4 w-4" /> {primaryActionLabel}
               </Button>
-              <Button
-                id="optimizeSelectedBtn"
-                variant="hero-outline"
-                className="w-full"
-                onClick={onReprocessSelected}
-                disabled={
-                  !selectedFile ||
-                  (!hasProcessedOnce &&
-                    selectedFile.status !== 'done' &&
-                    selectedFile.status !== 'error' &&
-                    selectedFile.status !== 'queued')
-                }
-              >
-                {hasProcessedOnce ? 'Reprocessar selecionado' : 'Processar selecionado'}
-              </Button>
-              <Button
-                id="downloadAllBtn"
-                variant="outline"
-                className="w-full"
-                onClick={() => void onDownloadAll()}
-              >
-                Download todos ({doneCount})
-              </Button>
-              <Button id="resetSessionBtn" variant="ghost" className="w-full" onClick={onBack}>
-                Limpar sessão
-              </Button>
+              {selectedFile ? (
+                <Button
+                  id="optimizeSelectedBtn"
+                  variant="hero-outline"
+                  className="w-full"
+                  onClick={onReprocessSelected}
+                  disabled={selectedActionDisabled || processingCount > 0}
+                >
+                  {hasProcessedOnce ? 'Reprocessar selecionado' : 'Processar selecionado'}
+                </Button>
+              ) : null}
+              {doneCount > 0 ? (
+                <Button
+                  id="downloadAllBtn"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => void onDownloadAll()}
+                >
+                  <Download className="h-4 w-4" /> Download todos ({doneCount})
+                </Button>
+              ) : null}
+              <div className="border-t border-border/70 pt-3">
+                <Button id="resetSessionBtn" variant="ghost" className="w-full" onClick={onBack}>
+                  Limpar sessão
+                </Button>
+              </div>
             </div>
 
             <div className="glass-panel p-5">
