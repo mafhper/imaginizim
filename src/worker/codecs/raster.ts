@@ -1,4 +1,5 @@
 import imageCompression from 'browser-image-compression';
+import { blobMatchesFormat } from '../../export/formats';
 import type { RasterCompressionOptions } from '../types';
 
 const SUPPORT_CACHE = new Map<string, boolean>();
@@ -36,18 +37,16 @@ function modeToMaxSize(mode: RasterCompressionOptions['mode'], profileKind: stri
 }
 
 async function supportsFormat(type: string): Promise<boolean> {
-  if (type === 'image/jpeg' || type === 'image/png' || type === 'image/webp') {
-    return true;
-  }
-
   if (SUPPORT_CACHE.has(type)) {
     return SUPPORT_CACHE.get(type) as boolean;
   }
 
   try {
     const canvas = new OffscreenCanvas(2, 2);
+    const context = canvas.getContext('2d');
+    context?.fillRect(0, 0, 2, 2);
     const blob = await canvas.convertToBlob({ type, quality: 0.9 });
-    const supported = blob.type === type;
+    const supported = blob.type === type && (await blobMatchesFormat(blob, type));
     SUPPORT_CACHE.set(type, supported);
     return supported;
   } catch {

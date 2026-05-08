@@ -10,11 +10,13 @@ import {
 } from 'react';
 import { createWorkerClient, type WorkerClient } from '../../compression/workerClient';
 import { downloadZip } from '../../download/download';
+import { exportFileNameForRecord } from '../../export/formats';
 import { t } from '../../i18n';
 import type { PreviewMode, ProcessedFileRecord, WorkerCompressionResponse } from '../../types';
 import { downloadBlob } from '../../utils/downloadBlob';
 import { createId } from '../../utils/id';
 import type { ComparisonState, QueueRecord, RecordSettings } from '../types';
+import { applyProcessingSettings } from './queueSettings';
 
 const QUEUE_DENSITY_KEY = 'imaginizim.queue-density';
 const PROCESS_TIMEOUT_MS = 45000;
@@ -124,9 +126,10 @@ export function CompressionProvider({ children }: PropsWithChildren) {
   const queueRef = useRef<string[]>([]);
   const activeIdRef = useRef<string | null>(null);
   const processNextRef = useRef<() => void>(() => {});
+  const settingsRef = useRef<RecordSettings>(defaultSettings());
   const [files, setFiles] = useState<QueueRecord[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [settings, setSettingsState] = useState<RecordSettings>(defaultSettings);
+  const [settings, setSettingsState] = useState<RecordSettings>(() => settingsRef.current);
   const [density, setDensityState] = useState<QueueDensity>(() => getStoredDensity());
   const [comparison, setComparison] = useState<ComparisonState>({
     open: false,
@@ -336,7 +339,9 @@ export function CompressionProvider({ children }: PropsWithChildren) {
   }, []);
 
   const setSettings = useCallback((patch: Partial<RecordSettings>) => {
-    setSettingsState((prev) => ({ ...prev, ...patch }));
+    const next = { ...settingsRef.current, ...patch };
+    settingsRef.current = next;
+    setSettingsState(next);
   }, []);
 
   const enqueueRecords = useCallback((ids: string[]) => {
@@ -347,56 +352,53 @@ export function CompressionProvider({ children }: PropsWithChildren) {
     });
   }, []);
 
-  const addFiles = useCallback(
-    (incoming: File[]) => {
-      const nextRecords = incoming
-        .filter((file) => file.type.startsWith('image/') || file.type === 'image/svg+xml')
-        .map((file) => {
-          const baseSettings = { ...settings };
-          const previewUrl = URL.createObjectURL(file);
-          const id = createId();
-          return {
-            id,
-            file,
-            status: 'queued' as const,
-            selected: false,
-            blob: null,
-            originalSize: file.size,
-            newSize: null,
-            chosenFormat:
-              baseSettings.outputFormat === 'original' ? file.type : baseSettings.outputFormat,
-            qualityScore: 0,
-            strategyUsed: 'queued',
-            sourceObjectUrl: previewUrl,
-            optimizedObjectUrl: null,
-            previewUrl,
-            compressedPreviewUrl: null,
-            statusLabel: t('engine.status_queued'),
-            errorMessage: null,
-            progress: 0,
-            settings: baseSettings
-          };
-        });
-
-      if (nextRecords.length === 0) return;
-
-      setFiles((prev) => {
-        const hasSelected = prev.some((record) => record.selected);
-        const merged = [...prev, ...nextRecords].map((record, index) => {
-          if (hasSelected) return record;
-          if (index === 0) {
-            return { ...record, selected: true };
-          }
-          return record;
-        });
-        filesRef.current = merged;
-        return merged;
+  const addFiles = useCallback((incoming: File[]) => {
+    const nextRecords = incoming
+      .filter((file) => file.type.startsWith('image/') || file.type === 'image/svg+xml')
+      .map((file) => {
+        const baseSettings = { ...settingsRef.current };
+        const previewUrl = URL.createObjectURL(file);
+        const id = createId();
+        return {
+          id,
+          file,
+          status: 'queued' as const,
+          selected: false,
+          blob: null,
+          originalSize: file.size,
+          newSize: null,
+          chosenFormat:
+            baseSettings.outputFormat === 'original' ? file.type : baseSettings.outputFormat,
+          qualityScore: 0,
+          strategyUsed: 'queued',
+          sourceObjectUrl: previewUrl,
+          optimizedObjectUrl: null,
+          previewUrl,
+          compressedPreviewUrl: null,
+          statusLabel: t('engine.status_queued'),
+          errorMessage: null,
+          progress: 0,
+          settings: baseSettings
+        };
       });
 
-      setSelectedId((current) => current ?? nextRecords[0]?.id ?? null);
-    },
-    [settings]
-  );
+    if (nextRecords.length === 0) return;
+
+    setFiles((prev) => {
+      const hasSelected = prev.some((record) => record.selected);
+      const merged = [...prev, ...nextRecords].map((record, index) => {
+        if (hasSelected) return record;
+        if (index === 0) {
+          return { ...record, selected: true };
+        }
+        return record;
+      });
+      filesRef.current = merged;
+      return merged;
+    });
+
+    setSelectedId((current) => current ?? nextRecords[0]?.id ?? null);
+  }, []);
 
   const selectFile = useCallback((id: string) => {
     setSelectedId(id);
@@ -456,40 +458,28 @@ export function CompressionProvider({ children }: PropsWithChildren) {
 
   const prepareReprocess = useCallback(
     (targetIds: string[]) => {
-      setFiles((prev) => {
-        const nextFiles = prev.map((record) => {
-          if (!targetIds.includes(record.id)) return record;
-          if (record.compressedPreviewUrl) {
-            URL.revokeObjectURL(record.compressedPreviewUrl);
-          }
-          const next: QueueRecord = {
-            ...record,
-            status: 'queued',
-            progress: 0,
-            errorMessage: null,
-            blob: null,
-            newSize: null,
-            qualityScore: 0,
-            strategyUsed: 'manual-reprocess',
-            optimizedObjectUrl: null,
-            compressedPreviewUrl: null,
-            statusLabel: t('engine.status_queued'),
-            settings: { ...settings },
-            chosenFormat:
-              settings.outputFormat === 'original' ? record.file.type : settings.outputFormat
-          };
-          return next;
-        });
-
-        filesRef.current = nextFiles;
-        return nextFiles;
+      const activeSettings = { ...settingsRef.current };
+      filesRef.current.forEach((record) => {
+        if (!targetIds.includes(record.id)) return;
+        if (record.compressedPreviewUrl) {
+          URL.revokeObjectURL(record.compressedPreviewUrl);
+        }
       });
+      const nextFiles = applyProcessingSettings(
+        filesRef.current,
+        targetIds,
+        activeSettings,
+        t('engine.status_queued')
+      );
+
+      filesRef.current = nextFiles;
+      setFiles(nextFiles);
       enqueueRecords(targetIds);
       if (!activeIdRef.current) {
         processNext();
       }
     },
-    [enqueueRecords, processNext, settings]
+    [enqueueRecords, processNext]
   );
 
   const reprocessFile = useCallback((id: string) => prepareReprocess([id]), [prepareReprocess]);
@@ -500,26 +490,14 @@ export function CompressionProvider({ children }: PropsWithChildren) {
     const ids = files.map((record) => record.id);
     if (ids.length === 0) return;
 
-    const hasProcessed = files.some(
-      (record) => record.status === 'done' || record.status === 'error' || record.blob !== null
-    );
-
-    if (hasProcessed) {
-      prepareReprocess(ids);
-      return;
-    }
-
-    enqueueRecords(ids);
-    if (!activeIdRef.current) {
-      processNext();
-    }
-  }, [enqueueRecords, files, prepareReprocess, processNext]);
+    prepareReprocess(ids);
+  }, [files, prepareReprocess]);
 
   const downloadFileById = useCallback(
     (id: string) => {
       const target = files.find((record) => record.id === id);
       if (!target?.blob) return;
-      downloadBlob(target.blob, `optimized-${target.file.name}`);
+      downloadBlob(target.blob, exportFileNameForRecord(target));
     },
     [files]
   );
