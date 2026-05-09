@@ -75,7 +75,7 @@ export function CompressorView(props: CompressorViewProps) {
   );
   const savingsPercent = totalOriginal > 0 ? (totalSavedBytes / totalOriginal) * 100 : 0;
   const processingCount = files.filter((file) => file.status === 'processing').length;
-  
+
   const primaryActionLabel =
     processingCount > 0
       ? 'Processando fila'
@@ -91,7 +91,6 @@ export function CompressorView(props: CompressorViewProps) {
   return (
     <div data-page="home" className="min-h-screen pt-24 pb-12 md:pt-32">
       <div className="container max-w-6xl space-y-4">
-        
         {/* Compact Header */}
         <section className="flex items-center justify-between glass-panel p-3">
           <div className="flex items-center gap-3">
@@ -99,7 +98,9 @@ export function CompressorView(props: CompressorViewProps) {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div className="text-sm text-foreground">
-              <span className="font-medium">{files.length} {files.length === 1 ? 'arquivo' : 'arquivos'}</span>
+              <span className="font-medium">
+                {files.length} {files.length === 1 ? 'arquivo' : 'arquivos'}
+              </span>
               <span className="text-muted-foreground mx-2">•</span>
               <span className="text-muted-foreground">{doneCount} concluídos</span>
             </div>
@@ -123,7 +124,6 @@ export function CompressorView(props: CompressorViewProps) {
         </section>
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_320px]">
-          
           {/* Main List Area */}
           <section className="flex flex-col min-h-[600px] glass-panel p-4">
             <div className="app-scrollbar flex-1 space-y-2 overflow-auto pr-1">
@@ -134,7 +134,7 @@ export function CompressorView(props: CompressorViewProps) {
                 );
                 const isDone = item.status === 'done';
                 const isSelected = selectedId === item.id;
-                
+
                 return (
                   <article
                     key={item.id}
@@ -144,9 +144,7 @@ export function CompressorView(props: CompressorViewProps) {
                     )}
                     onClick={() => onSelectFile(item.id)}
                   >
-                    <div
-                      className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-[6px] border border-border bg-secondary"
-                    >
+                    <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-[6px] border border-border bg-secondary">
                       <img
                         src={item.compressedPreviewUrl ?? item.previewUrl}
                         alt={item.file.name}
@@ -238,7 +236,7 @@ export function CompressorView(props: CompressorViewProps) {
               <div>
                 <h3 className="font-display text-lg font-medium text-foreground">Parâmetros</h3>
               </div>
-              
+
               <div className="space-y-4">
                 <div>
                   <label className="mb-1.5 flex justify-between text-xs text-muted-foreground">
@@ -315,7 +313,10 @@ export function CompressorView(props: CompressorViewProps) {
                 </Button>
                 {totalSavedBytes > 0 && (
                   <p className="mt-2 text-center text-xs text-muted-foreground">
-                    Economizado: <span className="text-primary font-medium">{formatBytes(totalSavedBytes)} ({savingsPercent.toFixed(1)}%)</span>
+                    Economizado:{' '}
+                    <span className="text-primary font-medium">
+                      {formatBytes(totalSavedBytes)} ({savingsPercent.toFixed(1)}%)
+                    </span>
                   </p>
                 )}
               </div>
@@ -332,15 +333,14 @@ export function CompressorView(props: CompressorViewProps) {
               )}
 
               <div className="pt-1">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
                   onClick={onBack}
                 >
                   Limpar sessão
                 </button>
               </div>
-
             </div>
           </aside>
         </div>

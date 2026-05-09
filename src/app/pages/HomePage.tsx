@@ -14,8 +14,6 @@ const CompressorView = lazy(() =>
   import('../components/home/CompressorView').then((module) => ({ default: module.CompressorView }))
 );
 
-
-
 export function HomePage() {
   const { t } = useTranslation();
   const app = useCompressionApp();
@@ -131,7 +129,9 @@ export function HomePage() {
           <div
             data-testid="home-dropzone"
             className={`home-dropzone glass-card relative overflow-hidden p-12 text-center transition-all duration-500 md:p-16 ${
-              isDragging ? 'scale-[1.02] border-primary/40 bg-background/80' : 'hover:border-white/20'
+              isDragging
+                ? 'scale-[1.02] border-primary/40 bg-background/80'
+                : 'hover:border-white/20'
             }`}
           >
             <div className="relative z-10">
@@ -139,13 +139,9 @@ export function HomePage() {
                 <ImageIcon className="h-6 w-6 text-muted-foreground" />
               </div>
               <h2 className="font-display mb-2 text-xl font-normal tracking-tight text-foreground md:text-2xl">
-                {isDragging
-                  ? t('engine.status_processing')
-                  : t('engine.init_title')}
+                {isDragging ? t('engine.status_processing') : t('engine.init_title')}
               </h2>
-              <p className="mb-8 text-[13px] text-muted-foreground">
-                {t('engine.init_desc')}
-              </p>
+              <p className="mb-8 text-[13px] text-muted-foreground">{t('engine.init_desc')}</p>
               <div className="flex items-center justify-center gap-4 text-[11px] font-mono tracking-widest text-muted-foreground/60 uppercase">
                 {['PNG', 'JPG', 'SVG', 'WebP', 'AVIF'].map((format) => (
                   <span key={format}>{format}</span>
@@ -171,7 +167,10 @@ export function HomePage() {
           </Button>
         </Link>
         <a href="https://github.com/mafhper/imaginizim" target="_blank" rel="noopener noreferrer">
-          <Button variant="ghost" className="rounded-full px-6 text-muted-foreground hover:text-foreground">
+          <Button
+            variant="ghost"
+            className="rounded-full px-6 text-muted-foreground hover:text-foreground"
+          >
             <GithubIcon className="h-4 w-4 mr-2" /> GitHub
           </Button>
         </a>

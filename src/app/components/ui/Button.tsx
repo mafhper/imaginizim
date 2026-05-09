@@ -15,8 +15,7 @@ const variantClasses: Record<Variant, string> = {
   'hero-outline':
     'border border-primary/20 bg-primary/5 text-foreground transition-all duration-300 hover:border-primary/40 hover:bg-primary/10',
   nav: 'bg-transparent text-muted-foreground transition-all duration-200 hover:bg-white/[0.04] hover:text-foreground',
-  'nav-active':
-    'bg-white/[0.06] text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
+  'nav-active': 'bg-white/[0.06] text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
   ghost:
     'bg-transparent text-muted-foreground transition-colors hover:bg-white/[0.04] hover:text-foreground',
   outline:

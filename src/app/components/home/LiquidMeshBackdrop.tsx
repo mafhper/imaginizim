@@ -311,17 +311,17 @@ export function LiquidMeshBackdrop() {
         colorA = hexToRgb('#000000'); // Depth
         colorB = hexToRgb('#ff0066'); // Atomic Pink
         colorC = hexToRgb('#00ffd5'); // Electric Teal
-        // colorC will be mixed with yellow sheen in shader logic below? No, I'll update shader to use 3 colors if needed, 
+        // colorC will be mixed with yellow sheen in shader logic below? No, I'll update shader to use 3 colors if needed,
         // but for now I'll just make these two extreme.
       } else {
-        colorA = hexToRgb('#ffffff'); 
+        colorA = hexToRgb('#ffffff');
         colorB = hexToRgb('#ff00aa'); // Vibrant Magenta
         colorC = hexToRgb('#00d4ff'); // Electric Sky
       }
     };
 
     updateColors(document.documentElement.dataset.theme || 'dark');
-    
+
     const unsubscribe = subscribeThemeChange((newTheme) => {
       updateColors(newTheme);
     });
@@ -351,7 +351,7 @@ export function LiquidMeshBackdrop() {
       frameId = window.requestAnimationFrame(render);
       if (!gl) return;
 
-      const delta = Math.max(16.7, now - lastTime);
+      const delta = Math.min(64, now - lastTime);
       lastTime = now;
       mouse.x += (mouse.tx - mouse.x) * 0.055;
       mouse.y += (mouse.ty - mouse.y) * 0.055;
@@ -370,7 +370,11 @@ export function LiquidMeshBackdrop() {
       gl.uniform1f(meshProgram.uniforms.uGrain, LIQUID_MESH_PRESET.grain);
       gl.uniform1f(meshProgram.uniforms.uPointer, LIQUID_MESH_PRESET.pointer ? 1 : 0);
       gl.uniform1f(meshProgram.uniforms.uClouds, LIQUID_MESH_PRESET.clouds);
-      gl.uniform2f(meshProgram.uniforms.uCenter, LIQUID_MESH_PRESET.centerX, LIQUID_MESH_PRESET.centerY);
+      gl.uniform2f(
+        meshProgram.uniforms.uCenter,
+        LIQUID_MESH_PRESET.centerX,
+        LIQUID_MESH_PRESET.centerY
+      );
       gl.uniform1f(meshProgram.uniforms.uCenterSize, LIQUID_MESH_PRESET.centerSize);
       gl.uniform3fv(meshProgram.uniforms.uColorA, colorA);
       gl.uniform3fv(meshProgram.uniforms.uColorB, colorB);

@@ -12,7 +12,6 @@ export function AppShell() {
         <Outlet />
       </main>
       <Footer />
-
     </div>
   );
 }

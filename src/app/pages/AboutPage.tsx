@@ -37,22 +37,24 @@ function FaqItem({
             {question}
           </span>
         </div>
-        <div className={cn(
-          "mt-1 flex h-10 w-10 items-center justify-center rounded-full border border-border/60 transition-all duration-300",
-          open ? "bg-primary border-primary text-primary-foreground rotate-180" : "bg-background text-muted-foreground group-hover:border-primary group-hover:text-primary"
-        )}>
+        <div
+          className={cn(
+            'mt-1 flex h-10 w-10 items-center justify-center rounded-full border border-border/60 transition-all duration-300',
+            open
+              ? 'bg-primary border-primary text-primary-foreground rotate-180'
+              : 'bg-background text-muted-foreground group-hover:border-primary group-hover:text-primary'
+          )}
+        >
           <ChevronDownIcon className="h-4 w-4" />
         </div>
       </button>
-      <div 
+      <div
         className={cn(
-          "overflow-hidden transition-all duration-500 ease-in-out",
-          open ? "max-h-96 opacity-100 mt-6" : "max-h-0 opacity-0"
+          'overflow-hidden transition-all duration-500 ease-in-out',
+          open ? 'max-h-96 opacity-100 mt-6' : 'max-h-0 opacity-0'
         )}
       >
-        <p className="text-lg leading-relaxed text-muted-foreground max-w-2xl">
-          {answer}
-        </p>
+        <p className="text-lg leading-relaxed text-muted-foreground max-w-2xl">{answer}</p>
       </div>
     </article>
   );
@@ -117,7 +119,6 @@ export function AboutPage() {
   return (
     <div data-page="about" className="relative min-h-screen overflow-hidden py-14 md:py-24">
       <div className="container relative z-10 max-w-4xl space-y-32 md:space-y-48">
-        
         {/* Hero Section */}
         <section data-testid="about-hero" className="max-w-3xl mx-auto text-center pt-8 md:pt-16">
           <h1 className="font-display text-4xl font-normal tracking-tight leading-[1.1] text-foreground md:text-[4rem]">
@@ -135,11 +136,9 @@ export function AboutPage() {
               <h2 className="font-display text-3xl font-normal tracking-tight text-foreground leading-tight">
                 {t('about.flow_title')}
               </h2>
-              <p className="mt-6 text-muted-foreground leading-relaxed">
-                {t('about.flow_desc')}
-              </p>
+              <p className="mt-6 text-muted-foreground leading-relaxed">{t('about.flow_desc')}</p>
             </div>
-            
+
             <div className="space-y-20 border-l border-border/40 pl-8 md:pl-12 py-4">
               {flowSteps.map((step, index) => {
                 const Icon = step.icon;
@@ -147,9 +146,11 @@ export function AboutPage() {
                   <article key={step.title} className="relative group">
                     {/* Timeline Dot */}
                     <div className="absolute left-[-41px] md:left-[-57px] top-2 h-4 w-4 rounded-full bg-background border-2 border-primary group-hover:scale-125 transition-transform" />
-                    
+
                     <div className="flex items-center gap-3 mb-4 text-primary/60">
-                      <span className="font-mono text-xs font-bold tracking-tighter">0{index + 1}</span>
+                      <span className="font-mono text-xs font-bold tracking-tighter">
+                        0{index + 1}
+                      </span>
                       <Icon className="h-5 w-5" />
                     </div>
                     <h3 className="font-display text-2xl font-normal tracking-tight text-foreground mb-4">
@@ -198,9 +199,7 @@ export function AboutPage() {
             <h2 className="font-display text-3xl font-normal tracking-tight text-foreground">
               {t('faq.title')}
             </h2>
-            <p className="mt-4 text-muted-foreground">
-              {t('faq.intro')}
-            </p>
+            <p className="mt-4 text-muted-foreground">{t('faq.intro')}</p>
           </div>
           <div className="border-t border-border/40 divide-y divide-border/40">
             {faqs.map((faq) => (
@@ -222,7 +221,10 @@ export function AboutPage() {
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <a href={issueUrl} target="_blank" rel="noopener noreferrer">
-              <Button variant="outline" className="rounded-full px-8 h-12 border-border/60 hover:bg-secondary/10">
+              <Button
+                variant="outline"
+                className="rounded-full px-8 h-12 border-border/60 hover:bg-secondary/10"
+              >
                 <GithubIcon className="h-5 w-5 mr-3" /> {t('faq.support_cta')}
               </Button>
             </a>
@@ -231,7 +233,6 @@ export function AboutPage() {
             <BrandMark className="mx-auto scale-75" />
           </div>
         </footer>
-
       </div>
     </div>
   );
