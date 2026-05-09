@@ -21,10 +21,10 @@ export function Footer() {
     <footer className="border-t border-border/40 py-12 md:py-16 mt-auto relative z-10 bg-background/50 backdrop-blur-sm">
       <div className="container max-w-6xl grid gap-8 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
         <div className="max-w-xl">
-          <p className="font-display text-[11px] font-medium tracking-[0.2em] uppercase text-foreground mb-3">
+          <p className="font-display text-xs font-semibold tracking-[0.2em] uppercase text-foreground mb-3">
             IMAGINIZIM
           </p>
-          <p className="text-sm leading-relaxed text-muted-foreground">{t('footer.caption')}</p>
+          <p className="text-[15px] leading-relaxed text-muted-foreground font-medium">{t('footer.caption')}</p>
         </div>
 
         <div className="flex flex-col gap-4 text-sm text-muted-foreground md:items-end">

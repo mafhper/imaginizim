@@ -40,7 +40,7 @@ export function WorkspaceCenter({ onFiles }: WorkspaceCenterProps) {
           <div className="mx-auto mb-7 flex h-16 w-16 items-center justify-center rounded-[8px] border border-primary/20 bg-primary/10 text-primary shadow-glow">
             <Scan className="h-7 w-7" />
           </div>
-          <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary">
+          <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary">
             <span className="h-2 w-2 rounded-full bg-primary shadow-glow" />
             {t('engine.local_badge')}
           </p>
@@ -53,11 +53,11 @@ export function WorkspaceCenter({ onFiles }: WorkspaceCenterProps) {
           <p className="mx-auto mt-3 max-w-[46ch] text-sm leading-7 text-muted-foreground/80">
             {t('engine.value_line')}
           </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs font-mono tracking-widest text-muted-foreground font-medium uppercase">
             {['PNG', 'JPG', 'SVG', 'WEBP', 'AVIF'].map((format) => (
               <span
                 key={format}
-                className="rounded-[8px] border border-border/60 bg-secondary px-3 py-1.5 text-xs font-medium text-muted-foreground"
+                className="opacity-80 hover:opacity-100 transition-opacity"
               >
                 {format}
               </span>

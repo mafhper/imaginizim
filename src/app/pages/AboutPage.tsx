@@ -209,30 +209,34 @@ export function AboutPage() {
         </section>
 
         {/* Support Strip CTA */}
-        <footer className="max-w-3xl mx-auto text-center border-t border-border/40 pt-24 pb-12">
-          <div className="mx-auto mb-8 flex h-14 w-14 items-center justify-center rounded-full bg-secondary/20 text-secondary">
-            <BrowserIcon className="h-6 w-6" />
+        <section className="max-w-4xl mx-auto pt-24 pb-12">
+          <div className="glass-card relative overflow-hidden rounded-[24px] p-8 md:p-16 text-center border-border/60">
+            <div className="relative z-10">
+              <div className="mx-auto mb-8 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-glow">
+                <BrowserIcon className="h-7 w-7" />
+              </div>
+              <h2 className="font-display text-3xl font-normal tracking-tight text-foreground mb-4">
+                {t('about.support_title')}
+              </h2>
+              <p className="text-xl leading-relaxed text-muted-foreground mb-10 max-w-md mx-auto">
+                {t('about.support_desc')}
+              </p>
+              <div className="flex flex-wrap justify-center gap-4">
+                <a href={issueUrl} target="_blank" rel="noopener noreferrer">
+                  <Button
+                    variant="hero"
+                    className="rounded-full px-10 h-14 shadow-glow"
+                  >
+                    <GithubIcon className="h-5 w-5 mr-3" /> {t('faq.support_cta')}
+                  </Button>
+                </a>
+              </div>
+              <div className="mt-16 opacity-30">
+                <BrandMark className="mx-auto scale-75" />
+              </div>
+            </div>
           </div>
-          <h2 className="font-display text-2xl font-normal tracking-tight text-foreground mb-4">
-            {t('about.support_title')}
-          </h2>
-          <p className="text-lg text-muted-foreground mb-10 max-w-md mx-auto">
-            {t('about.support_desc')}
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <a href={issueUrl} target="_blank" rel="noopener noreferrer">
-              <Button
-                variant="outline"
-                className="rounded-full px-8 h-12 border-border/60 hover:bg-secondary/10"
-              >
-                <GithubIcon className="h-5 w-5 mr-3" /> {t('faq.support_cta')}
-              </Button>
-            </a>
-          </div>
-          <div className="mt-20 opacity-30">
-            <BrandMark className="mx-auto scale-75" />
-          </div>
-        </footer>
+        </section>
       </div>
     </div>
   );
