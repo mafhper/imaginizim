@@ -51,14 +51,14 @@ export function QueuePanel(props: QueuePanelProps) {
         </div>
         <div className="flex items-center gap-2">
           {files.length > 0 ? (
-            <div className="rounded-full border border-white/8 bg-card/60 p-1 text-xs text-muted-foreground">
+            <div className="rounded-full border border-border/60 bg-muted/20 p-1 text-xs text-muted-foreground">
               <button
                 id="queueDensityComfortBtn"
                 type="button"
                 onClick={() => setDensity('comfort')}
                 className={cn(
                   'rounded-full px-3 py-1',
-                  density === 'comfort' && 'bg-white/8 text-foreground'
+                  density === 'comfort' && 'bg-secondary text-foreground'
                 )}
               >
                 {t('app.density_comfort')}
@@ -69,14 +69,14 @@ export function QueuePanel(props: QueuePanelProps) {
                 onClick={() => setDensity('compact')}
                 className={cn(
                   'rounded-full px-3 py-1',
-                  density === 'compact' && 'bg-white/8 text-foreground'
+                  density === 'compact' && 'bg-secondary text-foreground'
                 )}
               >
                 {t('app.density_compact')}
               </button>
             </div>
           ) : null}
-          <span className="inline-flex h-8 min-w-8 items-center justify-center rounded-full border border-white/8 bg-card/60 px-2 text-xs text-muted-foreground">
+          <span className="inline-flex h-8 min-w-8 items-center justify-center rounded-full border border-border bg-muted/40 px-2 text-xs text-muted-foreground">
             {files.length}
           </span>
         </div>
@@ -105,8 +105,8 @@ export function QueuePanel(props: QueuePanelProps) {
               className={cn(
                 'group grid cursor-pointer gap-3 rounded-[8px] border px-3 py-3 transition-colors',
                 selectedId === record.id
-                  ? 'border-primary/28 bg-card/75'
-                  : 'border-white/6 bg-card/45 hover:border-white/10 hover:bg-card/60',
+                  ? 'border-primary bg-secondary/30'
+                  : 'border-border bg-card/60 hover:border-primary/40 hover:bg-secondary/20',
                 isCompact
                   ? 'grid-cols-[minmax(0,1fr)_auto]'
                   : 'grid-cols-[68px_minmax(0,1fr)_auto]',
@@ -116,7 +116,7 @@ export function QueuePanel(props: QueuePanelProps) {
               {!isCompact ? (
                 <button
                   type="button"
-                  className="overflow-hidden rounded-[8px] border border-white/8 bg-background/60"
+                  className="overflow-hidden rounded-[8px] border border-border bg-secondary"
                   onClick={(event) => {
                     event.stopPropagation();
                     if (isDone) openComparison(record.id);
@@ -239,8 +239,8 @@ function IconAction({
       className={cn(
         'inline-flex h-8 items-center gap-2 rounded-[8px] border px-3 text-xs transition-colors',
         disabled
-          ? 'cursor-not-allowed border-white/6 bg-white/[0.03] text-muted-foreground/50'
-          : 'border-white/8 bg-white/[0.03] text-muted-foreground hover:border-white/12 hover:bg-white/[0.06] hover:text-foreground'
+          ? 'cursor-not-allowed border-border/40 bg-muted/10 text-muted-foreground/50'
+          : 'border-border bg-muted/20 text-muted-foreground hover:border-primary/40 hover:bg-muted/40 hover:text-foreground'
       )}
     >
       {icon}

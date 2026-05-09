@@ -40,7 +40,7 @@
 
 .file-item.is-selected {
   border-color: color-mix(in srgb, var(--accent) 38%, var(--hairline));
-  background: color-mix(in srgb, var(--accent-aurora-a) 8%, transparent);
+  background: color-mix(in srgb, var(--accent-warm-a) 8%, transparent);
 }
 
 .file-thumb-wrap {
@@ -141,7 +141,7 @@
   overflow: hidden;
   min-height: clamp(320px, 52vh, 560px);
   width: 100%;
-  border: 1px solid color-mix(in srgb, var(--accent-aurora-b) 34%, var(--border));
+  border: 1px solid color-mix(in srgb, var(--accent-warm-b) 34%, var(--border));
   border-radius: var(--radius-xl);
   background:
     radial-gradient(circle at 18% 18%, rgba(109, 129, 255, 0.12), transparent 34%),
@@ -169,24 +169,24 @@
   background:
     linear-gradient(
       125deg,
-      color-mix(in srgb, var(--accent-aurora-a) 24%, transparent),
-      color-mix(in srgb, var(--accent-aurora-b) 20%, transparent) 38%,
-      color-mix(in srgb, var(--accent-aurora-c) 18%, transparent) 68%,
+      color-mix(in srgb, var(--accent-warm-a) 24%, transparent),
+      color-mix(in srgb, var(--accent-warm-b) 20%, transparent) 38%,
+      color-mix(in srgb, var(--accent-warm-c) 18%, transparent) 68%,
       transparent
     ),
     radial-gradient(
       circle at 14% 24%,
-      color-mix(in srgb, var(--accent-aurora-a) 46%, transparent),
+      color-mix(in srgb, var(--accent-warm-a) 46%, transparent),
       transparent 54%
     ),
     radial-gradient(
       circle at 80% 18%,
-      color-mix(in srgb, var(--accent-aurora-b) 44%, transparent),
+      color-mix(in srgb, var(--accent-warm-b) 44%, transparent),
       transparent 52%
     ),
     radial-gradient(
       circle at 48% 78%,
-      color-mix(in srgb, var(--accent-aurora-c) 34%, transparent),
+      color-mix(in srgb, var(--accent-warm-c) 34%, transparent),
       transparent 58%
     );
   background-size:
@@ -245,7 +245,7 @@
   margin: 0.4rem 0 0;
   font-size: 0.78rem;
   letter-spacing: 0.01em;
-  color: color-mix(in srgb, var(--text-secondary) 84%, var(--accent-aurora-b));
+  color: color-mix(in srgb, var(--text-secondary) 84%, var(--accent-warm-b));
 }
 
 .supported-formats {
@@ -311,7 +311,7 @@
   background: linear-gradient(
     90deg,
     color-mix(in srgb, var(--accent) 62%, transparent),
-    color-mix(in srgb, var(--accent-aurora-a) 58%, transparent)
+    color-mix(in srgb, var(--accent-warm-a) 58%, transparent)
   );
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hairline) 76%, transparent);
 }
@@ -333,7 +333,7 @@
   background: linear-gradient(
     90deg,
     color-mix(in srgb, var(--accent) 62%, transparent),
-    color-mix(in srgb, var(--accent-aurora-a) 58%, transparent)
+    color-mix(in srgb, var(--accent-warm-a) 58%, transparent)
   );
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hairline) 76%, transparent);
 }
@@ -358,7 +358,7 @@
   min-height: 42px;
   font-size: 0.85rem;
   box-shadow:
-    0 10px 20px color-mix(in srgb, var(--accent-aurora-b) 14%, transparent),
+    0 10px 20px color-mix(in srgb, var(--accent-warm-b) 14%, transparent),
     inset 0 1px 0 color-mix(in srgb, white 16%, transparent);
 }
 
@@ -421,11 +421,11 @@
     linear-gradient(
       180deg,
       color-mix(in srgb, var(--accent) 14%, var(--rail-chip)),
-      color-mix(in srgb, var(--accent-aurora-b) 10%, var(--bg-soft))
+      color-mix(in srgb, var(--accent-warm-b) 10%, var(--bg-soft))
     ),
     linear-gradient(
       110deg,
-      color-mix(in srgb, var(--accent-aurora-a) 12%, transparent),
+      color-mix(in srgb, var(--accent-warm-a) 12%, transparent),
       transparent 70%
     );
 }
@@ -460,11 +460,11 @@
     linear-gradient(
       180deg,
       color-mix(in srgb, var(--accent) 12%, var(--rail-chip)),
-      color-mix(in srgb, var(--accent-aurora-b) 8%, var(--bg-soft))
+      color-mix(in srgb, var(--accent-warm-b) 8%, var(--bg-soft))
     ),
     linear-gradient(
       110deg,
-      color-mix(in srgb, var(--accent-aurora-a) 10%, transparent),
+      color-mix(in srgb, var(--accent-warm-a) 10%, transparent),
       transparent 68%
     );
   padding: 0.28rem 0.44rem;
@@ -482,7 +482,7 @@
 .btn-primary:hover,
 .btn-inline-primary:hover {
   box-shadow:
-    0 12px 22px color-mix(in srgb, var(--accent-aurora-b) 12%, transparent),
+    0 12px 22px color-mix(in srgb, var(--accent-warm-b) 12%, transparent),
     inset 0 1px 0 color-mix(in srgb, white 18%, transparent);
 }
 

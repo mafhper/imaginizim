@@ -1,9 +1,9 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { RouteFallback } from '../components/RouteFallback';
 import { useCompressionApp } from '../providers/CompressionProvider';
-import { BrowserIcon, DownloadIcon, GithubIcon, ImageIcon } from '../components/icons/AppIcons';
-import { Button } from '../components/ui/Button';
+import { ImageIcon } from '../components/icons/AppIcons';
+import { LiquidMeshBackdrop } from '../components/home/LiquidMeshBackdrop';
 
 const ComparisonModal = lazy(() =>
   import('../components/ComparisonModal').then((module) => ({ default: module.ComparisonModal }))
@@ -13,6 +13,7 @@ const CompressorView = lazy(() =>
 );
 
 export function HomePage() {
+  const { t } = useTranslation();
   const app = useCompressionApp();
   const [isDragging, setIsDragging] = useState(false);
   const comparisonFile = useMemo(
@@ -82,24 +83,16 @@ export function HomePage() {
   return (
     <div
       data-page="home"
-      className="relative flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center overflow-hidden px-4"
+      className="home-hero relative flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center overflow-x-hidden px-4 py-12 md:py-0"
     >
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-[18%] h-[460px] w-[460px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(94,234,212,0.08),transparent_62%)]" />
-        <div className="absolute inset-x-0 bottom-0 h-48 bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.08))]" />
-      </div>
+      <LiquidMeshBackdrop />
 
-      <div className="relative z-10 mb-10 max-w-2xl text-center">
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5">
-          <BrowserIcon className="h-3.5 w-3.5 text-primary" />
-          <span className="text-xs font-medium text-primary">Compressão 100% no navegador</span>
-        </div>
-        <h1 className="font-display mb-5 text-4xl font-bold leading-tight text-foreground md:text-6xl">
-          Otimize suas imagens <span className="text-gradient">sem sair do browser</span>
+      <div className="home-hero__copy relative z-10 mb-10 max-w-3xl text-center">
+        <h1 className="font-display mb-5 text-4xl font-normal tracking-[-0.03em] leading-tight text-foreground md:text-[3.4rem]">
+          {t('hero.title')}
         </h1>
-        <p className="mx-auto max-w-lg text-lg text-muted-foreground">
-          Comprima, compare e exporte mais rápido sem abrir mão do controle do asset. Tudo roda no
-          navegador, sem etapas extras.
+        <p className="mx-auto max-w-[58ch] text-lg leading-8 text-foreground/80">
+          {t('hero.subtitle')}
         </p>
       </div>
 
@@ -129,32 +122,22 @@ export function HomePage() {
           <div
             data-testid="home-dropzone"
             className={`home-dropzone glass-card relative overflow-hidden p-12 text-center transition-all duration-500 md:p-16 ${
-              isDragging ? 'scale-[1.02] border-primary/60 bg-primary/5' : 'hover:border-primary/40'
+              isDragging
+                ? 'scale-[1.02] border-primary/40 bg-background/80'
+                : 'hover:border-white/20'
             }`}
           >
-            <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-[hsl(280,60%,50%)]/5 opacity-60" />
             <div className="relative z-10">
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 transition-all duration-300">
-                <ImageIcon className="h-7 w-7 text-primary" />
+              <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-background/60 transition-all duration-300">
+                <ImageIcon className="h-6 w-6 text-muted-foreground" />
               </div>
-              <h2 className="font-display mb-2 text-xl font-semibold text-foreground md:text-2xl">
-                {isDragging
-                  ? 'Solte para comprimir'
-                  : 'Solte imagens aqui ou clique para selecionar'}
+              <h2 className="font-display mb-2 text-xl font-normal tracking-tight text-foreground md:text-2xl">
+                {isDragging ? t('engine.status_processing') : t('engine.init_title')}
               </h2>
-              <p className="mb-6 text-sm text-muted-foreground">
-                Compatível com PNG, JPG, SVG, WebP e AVIF.
-              </p>
-              <p className="mb-8 text-xs text-muted-foreground/70">
-                Monte o lote, ajuste o que precisa e processe quando o resultado fizer sentido para
-                esse arquivo.
-              </p>
-              <div className="flex items-center justify-center gap-2">
+              <p className="mb-8 text-[13px] text-muted-foreground">{t('engine.init_desc')}</p>
+              <div className="flex items-center justify-center gap-6 text-xs font-mono tracking-widest text-muted-foreground font-medium uppercase">
                 {['PNG', 'JPG', 'SVG', 'WebP', 'AVIF'].map((format) => (
-                  <span
-                    key={format}
-                    className="rounded-md border border-border/50 bg-secondary px-3 py-1.5 text-xs font-medium text-muted-foreground"
-                  >
+                  <span key={format} className="opacity-80 hover:opacity-100 transition-opacity">
                     {format}
                   </span>
                 ))}
@@ -164,32 +147,12 @@ export function HomePage() {
         </label>
       </div>
 
-      <div className="relative z-10 mt-10 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
-        <div className="flex items-center gap-2">
-          <BrowserIcon className="h-4 w-4 text-primary" />
-          <span>Processamento local</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <DownloadIcon className="h-4 w-4 text-[hsl(280,60%,65%)]" />
-          <span>Download em ZIP</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <ImageIcon className="h-4 w-4 text-[hsl(330,60%,60%)]" />
-          <span>Comparação sob demanda</span>
-        </div>
-      </div>
-
-      <div className="relative z-10 mt-12 flex flex-wrap items-center justify-center gap-3">
-        <Link to="/sobre">
-          <Button variant="hero-outline" size="sm">
-            Entender a ferramenta
-          </Button>
-        </Link>
-        <a href="https://github.com/mafhper/imaginizim" target="_blank" rel="noopener noreferrer">
-          <Button variant="ghost" size="sm" className="text-muted-foreground">
-            <GithubIcon className="h-3.5 w-3.5" /> GitHub
-          </Button>
-        </a>
+      <div className="home-hero__proof relative z-10 mt-10 flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
+        <span>{t('hero.tag1')}</span>
+        <span className="w-1 h-1 rounded-full bg-border"></span>
+        <span>{t('hero.tag2')}</span>
+        <span className="w-1 h-1 rounded-full bg-border"></span>
+        <span>{t('hero.tag3')}</span>
       </div>
     </div>
   );

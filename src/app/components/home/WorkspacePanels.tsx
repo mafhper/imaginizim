@@ -18,7 +18,7 @@ export function WorkspaceCenter({ onFiles }: WorkspaceCenterProps) {
     <section className="relative min-h-0">
       <label
         data-testid="home-dropzone"
-        className="dropzone-card group relative flex min-h-[420px] cursor-pointer items-center justify-center overflow-hidden rounded-[8px] border border-white/10 px-6 py-12 text-center shadow-rail"
+        className="dropzone-card group relative flex min-h-[420px] cursor-pointer items-center justify-center overflow-hidden rounded-[8px] border border-border px-6 py-12 text-center shadow-rail"
         onDragOver={(event) => event.preventDefault()}
         onDrop={(event) => {
           event.preventDefault();
@@ -40,7 +40,7 @@ export function WorkspaceCenter({ onFiles }: WorkspaceCenterProps) {
           <div className="mx-auto mb-7 flex h-16 w-16 items-center justify-center rounded-[8px] border border-primary/20 bg-primary/10 text-primary shadow-glow">
             <Scan className="h-7 w-7" />
           </div>
-          <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary">
+          <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary">
             <span className="h-2 w-2 rounded-full bg-primary shadow-glow" />
             {t('engine.local_badge')}
           </p>
@@ -53,12 +53,9 @@ export function WorkspaceCenter({ onFiles }: WorkspaceCenterProps) {
           <p className="mx-auto mt-3 max-w-[46ch] text-sm leading-7 text-muted-foreground/80">
             {t('engine.value_line')}
           </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs font-mono tracking-widest text-muted-foreground font-medium uppercase">
             {['PNG', 'JPG', 'SVG', 'WEBP', 'AVIF'].map((format) => (
-              <span
-                key={format}
-                className="rounded-[8px] border border-white/8 bg-secondary/80 px-3 py-1.5 text-xs font-medium text-muted-foreground"
-              >
+              <span key={format} className="opacity-80 hover:opacity-100 transition-opacity">
                 {format}
               </span>
             ))}
@@ -245,10 +242,10 @@ function ActionButton({
         'inline-flex min-h-11 items-center justify-center gap-2 rounded-[8px] border px-4 text-sm font-medium transition-all',
         disabled && 'cursor-not-allowed opacity-50',
         primary
-          ? 'border-primary/20 bg-primary/12 text-foreground shadow-glow'
+          ? 'border-primary/40 bg-primary/20 text-foreground shadow-glow'
           : subtle
-            ? 'border-white/8 bg-white/[0.02] text-muted-foreground hover:bg-white/[0.04] hover:text-foreground'
-            : 'border-white/8 bg-card/70 text-muted-foreground hover:border-white/12 hover:bg-card hover:text-foreground'
+            ? 'border-border/60 bg-muted/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground'
+            : 'border-border/80 bg-card text-muted-foreground hover:border-primary/40 hover:bg-card hover:text-foreground'
       )}
     >
       {icon}

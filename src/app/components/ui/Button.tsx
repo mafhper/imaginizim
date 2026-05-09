@@ -11,23 +11,22 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<Variant, string> = {
-  hero: 'btn-hero border border-primary/20 bg-gradient-to-r from-primary/90 via-[hsl(182,58%,52%)] to-[hsl(194,56%,56%)] text-primary-foreground shadow-[0_10px_36px_rgba(19,211,193,0.18)] transition-all duration-300 hover:brightness-[1.04] hover:shadow-[0_14px_42px_rgba(19,211,193,0.24)]',
+  hero: 'bg-primary text-primary-foreground transition-all duration-300 hover:brightness-110 shadow-sm',
   'hero-outline':
-    'btn-hero-outline border border-primary/24 bg-primary/8 text-foreground transition-all duration-300 hover:border-primary/34 hover:bg-primary/12',
-  nav: 'btn-nav bg-transparent text-muted-foreground transition-all duration-200 hover:bg-white/[0.04] hover:text-foreground',
-  'nav-active':
-    'btn-nav-active bg-white/[0.06] text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
+    'border border-primary/20 bg-primary/5 text-foreground transition-all duration-300 hover:border-primary/40 hover:bg-primary/10',
+  nav: 'bg-transparent text-muted-foreground transition-all duration-200 hover:bg-white/[0.04] hover:text-foreground',
+  'nav-active': 'bg-white/[0.06] text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
   ghost:
-    'btn-ghost bg-transparent text-muted-foreground transition-colors hover:bg-white/[0.04] hover:text-foreground',
+    'bg-transparent text-muted-foreground transition-colors hover:bg-white/[0.04] hover:text-foreground',
   outline:
-    'btn-outline border border-input bg-background/60 text-foreground transition-colors hover:bg-white/[0.03]'
+    'border border-border/40 bg-background/60 text-foreground transition-colors hover:bg-white/[0.03]'
 };
 
 const sizeClasses: Record<Size, string> = {
-  sm: 'h-9 rounded-[8px] px-3 text-sm',
-  md: 'h-10 rounded-[8px] px-4 text-sm',
-  lg: 'h-11 rounded-[8px] px-8 text-sm',
-  icon: 'h-10 w-10 rounded-[8px]'
+  sm: 'h-9 rounded-full px-4 text-[13px]',
+  md: 'h-10 rounded-full px-5 text-sm',
+  lg: 'h-12 rounded-full px-8 text-base',
+  icon: 'h-10 w-10 rounded-full'
 };
 
 export function Button({

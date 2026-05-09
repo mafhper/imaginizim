@@ -1,4 +1,5 @@
 import i18next from 'i18next';
+import { initReactI18next } from 'react-i18next';
 import en from '../locales/en.json';
 import ptBr from '../locales/pt-br.json';
 import es from '../locales/es.json';
@@ -63,7 +64,7 @@ export async function initI18n(): Promise<void> {
 
   const resolvedLanguage = resolveLanguage();
 
-  await i18next.init({
+  await i18next.use(initReactI18next).init({
     fallbackLng: 'en',
     debug: false,
     resources: {

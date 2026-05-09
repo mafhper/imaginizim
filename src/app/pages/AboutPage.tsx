@@ -1,76 +1,107 @@
-import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { PageCTA } from '../components/PageCTA';
-import {
-  ContentBandSection,
-  ContentHeroSection,
-  EvidenceCardRow
-} from '../components/content/SectionTemplates';
-import { BrowserIcon, ClockIcon, GithubIcon } from '../components/icons/AppIcons';
-import { AnalyzeIcon, ExportIcon, FormatIcon, OptimizeIcon } from '../components/icons/StepIcons';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Link, useLocation } from 'react-router-dom';
+import { getProjectMeta } from '../../utils/projectMeta';
+import { BrowserIcon, ChevronDownIcon, GithubIcon } from '../components/icons/AppIcons';
+import { AnalyzeIcon, ExportIcon, ShieldIcon } from '../components/icons/StepIcons';
+import { Button } from '../components/ui/Button';
+import { BrandMark } from '../components/BrandMark';
+import { cn } from '../utils/ui';
 
-const introCards = [
-  {
-    title: 'Local',
-    subtitle: 'Sem etapa externa',
-    description: 'Roda no navegador e evita etapas externas no fluxo principal.',
-    icon: BrowserIcon
-  },
-  {
-    title: 'Rápido',
-    subtitle: 'Resultado direto',
-    description: 'Entra no lote, comprime e devolve o resultado sem ruído.',
-    icon: ClockIcon
-  },
-  {
-    title: 'Aberto',
-    subtitle: 'Código auditável',
-    description: 'Código auditável hoje e base pronta para desktop depois.',
-    icon: GithubIcon
-  },
-  {
-    title: 'Analisa',
-    subtitle: 'Lê o arquivo',
-    description: 'Entende o que precisa ser preservado antes de comprimir.',
-    icon: AnalyzeIcon
-  },
-  {
-    title: 'Otimiza',
-    subtitle: 'Escolhe a saída',
-    description: 'Decide a melhor compressão de acordo com o formato e o objetivo.',
-    icon: OptimizeIcon
-  },
-  {
-    title: 'Exporta',
-    subtitle: 'Fecha o lote',
-    description: 'Entrega o arquivo final pronto para baixar sozinho ou em lote.',
-    icon: ExportIcon
-  }
-];
+// AboutPage component internationalized with t() calls
 
-const formatCards = [
-  {
-    title: 'JPEG',
-    description: 'Escolha padrão para fotos e imagens com muitas cores.',
-    goodFor: 'Publicação ampla e peso controlado.',
-    avoid: 'Quando o arquivo precisar de transparência.'
-  },
-  {
-    title: 'PNG',
-    description: 'Melhor para logo, interface, ícone e transparência.',
-    goodFor: 'Bordas limpas e alpha preservado.',
-    avoid: 'Lotes de fotos, porque tende a pesar mais.'
-  },
-  {
-    title: 'WebP / AVIF',
-    description: 'Use quando a prioridade for reduzir peso na web.',
-    goodFor: 'Entrega moderna e payload menor.',
-    avoid: 'Contextos que ainda pedem fallback amplo.'
-  }
-];
+function FaqItem({
+  category,
+  question,
+  answer
+}: {
+  category: string;
+  question: string;
+  answer: string;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <article className="py-8 group">
+      <button
+        type="button"
+        className="w-full flex items-start justify-between text-left focus:outline-none"
+        aria-expanded={open}
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        <div className="flex-1 pr-8">
+          <span className="font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-primary/60 mb-3 block">
+            {category}
+          </span>
+          <span className="font-display text-xl md:text-2xl font-normal tracking-tight text-foreground group-hover:text-primary transition-colors leading-tight">
+            {question}
+          </span>
+        </div>
+        <div
+          className={cn(
+            'mt-1 flex h-10 w-10 items-center justify-center rounded-full border border-border/60 transition-all duration-300',
+            open
+              ? 'bg-primary border-primary text-primary-foreground rotate-180'
+              : 'bg-background text-muted-foreground group-hover:border-primary group-hover:text-primary'
+          )}
+        >
+          <ChevronDownIcon className="h-4 w-4" />
+        </div>
+      </button>
+      <div
+        className={cn(
+          'overflow-hidden transition-all duration-500 ease-in-out',
+          open ? 'max-h-96 opacity-100 mt-6' : 'max-h-0 opacity-0'
+        )}
+      >
+        <p className="text-lg leading-relaxed text-muted-foreground max-w-2xl">{answer}</p>
+      </div>
+    </article>
+  );
+}
+
+// AboutPage component internationalized with t() calls
 
 export function AboutPage() {
+  const { t } = useTranslation();
+  const issueUrl = getProjectMeta().issuesUrl;
   const location = useLocation();
+
+  const flowSteps = [
+    {
+      title: t('how.step1_title'),
+      description: t('how.step1_desc'),
+      icon: BrowserIcon
+    },
+    {
+      title: t('how.step2_title'),
+      description: t('how.step2_desc'),
+      icon: AnalyzeIcon
+    },
+    {
+      title: t('how.step3_title'),
+      description: t('how.step3_desc'),
+      icon: ExportIcon
+    }
+  ];
+
+  const faqs = [
+    {
+      category: t('nav.app'),
+      question: t('faq.q1'),
+      answer: t('faq.a1')
+    },
+    {
+      category: 'Privacidade',
+      question: t('faq.q2'),
+      answer: t('faq.a2')
+    },
+    {
+      category: 'Roadmap',
+      question: t('faq.q3'),
+      answer: t('faq.a3')
+    }
+  ];
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -86,108 +117,123 @@ export function AboutPage() {
   }, [location.search]);
 
   return (
-    <div data-page="about" className="py-14 md:py-24">
-      <div className="site-shell space-y-14 md:space-y-24">
-        <ContentHeroSection
-          testId="about-hero"
-          layout="stacked"
-          copy={
-            <>
-              <p className="section-label mb-3">Sobre</p>
-              <h1 className="font-display text-4xl font-bold text-foreground md:text-5xl">
-                Um compressor local pensado para uso real
-              </h1>
-              <p className="hero-copy-lead mt-4 text-lg leading-8 text-muted-foreground">
-                O Imaginizim existe para reduzir peso sem transformar a tarefa em uma tela técnica.
-                Você envia o arquivo, recebe o resultado e segue o fluxo.
-              </p>
-            </>
-          }
-          visual={
-            <EvidenceCardRow
-              testId="about-workflow-cards"
-              columnsClassName="md:grid-cols-2 xl:grid-cols-3"
-              className="w-full"
-            >
-              {introCards.map((step) => {
+    <div data-page="about" className="relative min-h-screen overflow-hidden py-14 md:py-24">
+      <div className="container relative z-10 max-w-4xl space-y-32 md:space-y-48">
+        {/* Hero Section */}
+        <section data-testid="about-hero" className="max-w-3xl mx-auto text-center pt-8 md:pt-16">
+          <h1 className="font-display text-4xl font-normal tracking-tight leading-[1.1] text-foreground md:text-[4rem]">
+            {t('about.intro_title')}
+          </h1>
+          <p className="mt-10 text-xl leading-relaxed text-muted-foreground max-w-2xl mx-auto">
+            {t('about.intro_desc')}
+          </p>
+        </section>
+
+        {/* Editorial Timeline */}
+        <section id="fluxo" className="max-w-3xl mx-auto" data-testid="about-flow-band">
+          <div className="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20">
+            <div className="sticky top-32 h-fit">
+              <h2 className="font-display text-3xl font-normal tracking-tight text-foreground leading-tight">
+                {t('about.flow_title')}
+              </h2>
+              <p className="mt-6 text-muted-foreground leading-relaxed">{t('about.flow_desc')}</p>
+            </div>
+
+            <div className="space-y-20 border-l border-border/40 pl-8 md:pl-12 py-4">
+              {flowSteps.map((step, index) => {
                 const Icon = step.icon;
                 return (
-                  <article key={step.title} className="glass-card p-6 md:p-7">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-[8px] border border-primary/20 bg-primary/10 text-primary">
-                      <Icon className="h-7 w-7" />
+                  <article key={step.title} className="relative group">
+                    {/* Timeline Dot */}
+                    <div className="absolute left-[-41px] md:left-[-57px] top-2 h-4 w-4 rounded-full bg-background border-2 border-primary group-hover:scale-125 transition-transform" />
+
+                    <div className="flex items-center gap-3 mb-4 text-primary/60">
+                      <span className="font-mono text-xs font-bold tracking-tighter">
+                        0{index + 1}
+                      </span>
+                      <Icon className="h-5 w-5" />
                     </div>
-                    <h3 className="mt-5 font-display text-[1.65rem] font-semibold text-foreground">
+                    <h3 className="font-display text-2xl font-normal tracking-tight text-foreground mb-4">
                       {step.title}
                     </h3>
-                    <p className="mt-2 text-base font-medium text-primary/80">{step.subtitle}</p>
-                    <p className="mt-4 text-sm leading-7 text-muted-foreground">
+                    <p className="text-lg leading-relaxed text-muted-foreground/90">
                       {step.description}
                     </p>
                   </article>
                 );
               })}
-            </EvidenceCardRow>
-          }
-          visualClassName="content-hero-visual-wide"
-        />
-
-        <section id="formatos">
-          <ContentBandSection
-            testId="about-formats-band"
-            centered
-            kicker="Formatos"
-            title="Formatos principais"
-            description={
-              <p className="hero-copy-lead">
-                Foto vai para JPEG, transparência vai para PNG e peso menor pede WebP ou AVIF.
-              </p>
-            }
-          >
-            <EvidenceCardRow testId="about-formats-cards">
-              {formatCards.map((format) => (
-                <article key={format.title} className="glass-card p-6 md:p-7">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-[8px] border border-primary/20 bg-primary/10 text-primary">
-                    <FormatIcon className="h-7 w-7" />
-                  </div>
-                  <h3 className="mt-5 font-display text-[1.65rem] font-semibold text-foreground">
-                    {format.title}
-                  </h3>
-                  <p className="mt-3 text-sm leading-7 text-muted-foreground">
-                    {format.description}
-                  </p>
-                  <div className="mt-5 space-y-2 text-sm leading-6 text-muted-foreground">
-                    <p>
-                      <span className="font-medium text-foreground">Melhor para:</span>{' '}
-                      {format.goodFor}
-                    </p>
-                    <p>
-                      <span className="font-medium text-foreground">Evite se:</span> {format.avoid}
-                    </p>
-                  </div>
-                </article>
-              ))}
-            </EvidenceCardRow>
-
-            <article className="glass-card mt-4 p-5 md:p-6">
-              <p className="section-label mb-3">Automático</p>
-              <h3 className="font-display text-[1.65rem] font-semibold text-foreground">
-                Deixe no automático quando não quiser decidir manualmente
-              </h3>
-              <p className="mt-3 text-sm leading-7 text-muted-foreground">
-                Esse modo existe para reduzir dúvida. O arquivo é lido e a saída é escolhida sem te
-                empurrar detalhe técnico.
-              </p>
-            </article>
-          </ContentBandSection>
+            </div>
+          </div>
         </section>
 
-        <PageCTA
-          label="FAQ"
-          title="Se restou dúvida, vá direto às respostas curtas"
-          description="A página de FAQ concentra perguntas frequentes e também o tópico de privacidade."
-          linkTo="/faq"
-          linkLabel="Abrir FAQ"
-        />
+        {/* Editorial Privacy Block */}
+        <section id="privacidade" data-testid="faq-privacy-topic" className="max-w-4xl mx-auto">
+          <div className="glass-card relative overflow-hidden rounded-[24px] p-8 md:p-20 text-center border-border/60">
+            <div className="relative z-10">
+              <div className="mx-auto mb-10 flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-glow">
+                <ShieldIcon className="h-10 w-10" />
+              </div>
+              <h2 className="font-display text-3xl font-normal tracking-tight text-foreground mb-6 md:text-4xl">
+                {t('about.privacy_title')}
+              </h2>
+              <p className="text-xl leading-relaxed text-muted-foreground max-w-2xl mx-auto mb-12">
+                {t('about.privacy_desc')}
+              </p>
+              <div className="flex flex-wrap justify-center gap-8 font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-primary/70">
+                <div className="flex items-center gap-2">
+                  <span className="h-1 w-1 rounded-full bg-primary" />
+                  <span>{t('privacy.boundary_title')}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="h-1 w-1 rounded-full bg-primary" />
+                  <span>{t('privacy.note')}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ Accordion */}
+        <section id="faq" className="max-w-3xl mx-auto">
+          <div className="mb-16 text-center">
+            <h2 className="font-display text-3xl font-normal tracking-tight text-foreground">
+              {t('faq.title')}
+            </h2>
+            <p className="mt-4 text-muted-foreground">{t('faq.intro')}</p>
+          </div>
+          <div className="border-t border-border/40 divide-y divide-border/40">
+            {faqs.map((faq) => (
+              <FaqItem key={faq.question} {...faq} />
+            ))}
+          </div>
+        </section>
+
+        {/* Support Strip CTA */}
+        <section className="max-w-4xl mx-auto pt-24 pb-12">
+          <div className="glass-card relative overflow-hidden rounded-[24px] p-8 md:p-16 text-center border-border/60">
+            <div className="relative z-10">
+              <div className="mx-auto mb-8 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-glow">
+                <BrowserIcon className="h-7 w-7" />
+              </div>
+              <h2 className="font-display text-3xl font-normal tracking-tight text-foreground mb-4">
+                {t('about.support_title')}
+              </h2>
+              <p className="text-xl leading-relaxed text-muted-foreground mb-10 max-w-md mx-auto">
+                {t('about.support_desc')}
+              </p>
+              <div className="flex flex-wrap justify-center gap-4">
+                <a href={issueUrl} target="_blank" rel="noopener noreferrer">
+                  <Button variant="hero" className="rounded-full px-10 h-14 shadow-glow">
+                    <GithubIcon className="h-5 w-5 mr-3" /> {t('faq.support_cta')}
+                  </Button>
+                </a>
+              </div>
+              <div className="mt-16 opacity-30">
+                <BrandMark className="mx-auto scale-75" />
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );
