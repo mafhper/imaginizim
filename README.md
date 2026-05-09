@@ -24,6 +24,7 @@ Imaginizim foi projetado para processar arquivos localmente, de forma rápida, c
 - `React Router`
 - `i18next`
 - `browser-image-compression`
+- `lucide-react`
 - `SVGO`
 - `JSZip`
 
