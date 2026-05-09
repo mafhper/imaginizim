@@ -1,7 +1,6 @@
 import {
   AlertCircle,
   ArrowLeft,
-  Check,
   Download,
   Eye,
   Plus,
@@ -55,7 +54,6 @@ export function CompressorView(props: CompressorViewProps) {
     scale,
     outputFormat,
     optimizationMode,
-    density,
     doneCount,
     totalSavedBytes,
     hasProcessedOnce,
@@ -66,9 +64,7 @@ export function CompressorView(props: CompressorViewProps) {
     onOpenComparison,
     onDownloadFile,
     onReprocessFile,
-    onSetDensity,
     onSettingsChange,
-    onReprocessSelected,
     onReprocessAll,
     onDownloadAll
   } = props;
@@ -77,42 +73,15 @@ export function CompressorView(props: CompressorViewProps) {
     () => files.reduce((sum, file) => sum + file.originalSize, 0),
     [files]
   );
-  const totalCompressed = useMemo(
-    () => files.reduce((sum, file) => sum + (file.newSize ?? file.originalSize), 0),
-    [files]
-  );
-  const selectedFile = useMemo(
-    () => files.find((file) => file.id === selectedId) ?? null,
-    [files, selectedId]
-  );
-  const allDone =
-    files.length > 0 && files.every((file) => file.status === 'done' || file.status === 'error');
   const savingsPercent = totalOriginal > 0 ? (totalSavedBytes / totalOriginal) * 100 : 0;
-  const queuedCount = files.filter((file) => file.status === 'queued').length;
   const processingCount = files.filter((file) => file.status === 'processing').length;
-  const errorCount = files.filter((file) => file.status === 'error').length;
-  const shouldSuggestModernFormat =
-    optimizationMode === 'max-compression' && outputFormat === 'original';
-  const selectedActionDisabled =
-    !selectedFile ||
-    (!hasProcessedOnce &&
-      selectedFile.status !== 'done' &&
-      selectedFile.status !== 'error' &&
-      selectedFile.status !== 'queued');
+  
   const primaryActionLabel =
     processingCount > 0
       ? 'Processando fila'
       : hasProcessedOnce
         ? 'Reprocessar fila'
         : 'Processar fila';
-  const primaryActionHint =
-    processingCount > 0
-      ? `${processingCount} em andamento. Você pode acompanhar a fila sem disparar outro lote.`
-      : queuedCount > 0
-        ? `${queuedCount} ${queuedCount === 1 ? 'arquivo aguarda' : 'arquivos aguardam'} os parâmetros atuais.`
-        : hasProcessedOnce
-          ? 'Reprocessa o lote com os parâmetros atuais.'
-          : 'Usa os parâmetros atuais para fechar o primeiro lote.';
 
   const handleMoreFiles = (fileList: FileList | null) => {
     if (!fileList) return;
@@ -120,439 +89,258 @@ export function CompressorView(props: CompressorViewProps) {
   };
 
   return (
-    <div data-page="home" className="min-h-[calc(100vh-4rem)] py-6 md:py-8">
-      <div className="container max-w-7xl space-y-6">
-        <section className="glass-panel p-4 md:p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-2xl">
-              <div className="mb-3 flex flex-wrap gap-2">
-                <span className="metric-chip">
-                  <span className="glow-dot" /> {files.length}{' '}
-                  {files.length === 1 ? 'arquivo' : 'arquivos'}
-                </span>
-                <span className="metric-chip">
-                  <span className="glow-dot" /> {doneCount} concluídos
-                </span>
-                {processingCount > 0 ? (
-                  <span className="metric-chip">{processingCount} processando</span>
-                ) : null}
-                {errorCount > 0 ? <span className="metric-chip">{errorCount} com erro</span> : null}
-              </div>
-              <h1 className="font-display text-3xl font-bold text-foreground md:text-4xl">
-                Workspace de compressão
-              </h1>
-              <p className="mt-3 max-w-xl text-sm leading-7 text-muted-foreground md:text-base">
-                Adicione o lote, ajuste os parâmetros e dispare o processamento quando estiver
-                pronto. Depois disso, reprocessar volta a ser uma decisão consciente.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={onBack} className="gap-1.5">
-                <ArrowLeft className="h-4 w-4" /> Voltar
-              </Button>
-              <div className="rounded-[8px] border border-white/8 bg-secondary/55 p-1">
-                <button
-                  id="queueDensityComfortBtn"
-                  type="button"
-                  onClick={() => onSetDensity('comfort')}
-                  className={cn(
-                    'rounded-[8px] px-3 py-1.5 text-xs transition-colors',
-                    density === 'comfort'
-                      ? 'bg-white/[0.08] text-foreground'
-                      : 'text-muted-foreground'
-                  )}
-                >
-                  Confortável
-                </button>
-                <button
-                  id="queueDensityCompactBtn"
-                  type="button"
-                  onClick={() => onSetDensity('compact')}
-                  className={cn(
-                    'rounded-[8px] px-3 py-1.5 text-xs transition-colors',
-                    density === 'compact'
-                      ? 'bg-white/[0.08] text-foreground'
-                      : 'text-muted-foreground'
-                  )}
-                >
-                  Compacta
-                </button>
-              </div>
-              <label className="cursor-pointer">
-                <input
-                  id="fileInput"
-                  data-testid="file-input"
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={(event) => handleMoreFiles(event.target.files)}
-                />
-                <span>
-                  <Button variant="outline" size="sm">
-                    <Plus className="h-4 w-4" /> Adicionar
-                  </Button>
-                </span>
-              </label>
+    <div data-page="home" className="min-h-screen pt-24 pb-12 md:pt-32">
+      <div className="container max-w-6xl space-y-4">
+        
+        {/* Compact Header */}
+        <section className="flex items-center justify-between glass-panel p-3">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={onBack} className="h-8 w-8">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div className="text-sm text-foreground">
+              <span className="font-medium">{files.length} {files.length === 1 ? 'arquivo' : 'arquivos'}</span>
+              <span className="text-muted-foreground mx-2">•</span>
+              <span className="text-muted-foreground">{doneCount} concluídos</span>
             </div>
           </div>
+          <label className="cursor-pointer">
+            <input
+              id="fileInput"
+              data-testid="file-input"
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(event) => handleMoreFiles(event.target.files)}
+            />
+            <span>
+              <Button variant="outline" size="sm" className="h-8">
+                <Plus className="h-4 w-4 mr-1.5" /> Adicionar
+              </Button>
+            </span>
+          </label>
         </section>
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.18fr)_360px]">
-          <section className="glass-panel flex min-h-[640px] flex-col p-4 md:p-5">
-            <div className="mb-4 flex flex-wrap items-end justify-between gap-4 border-b border-border/70 pb-4">
-              <div>
-                <p className="section-label mb-2">Fila ativa</p>
-                <h2 className="font-display text-2xl font-semibold text-foreground">
-                  Arquivos em processamento
-                </h2>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Compare, baixe ou reprocesse cada item quando fizer sentido.
-                </p>
-              </div>
-              {allDone ? (
-                <span className="metric-chip text-primary">
-                  <Check className="h-3.5 w-3.5" /> processamento concluído
-                </span>
-              ) : null}
-            </div>
-
-            {selectedFile ? (
-              <div className="mb-4 rounded-[8px] border border-white/8 bg-background/60 px-4 py-3">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="section-label mb-1">Arquivo em foco</p>
-                    <p className="truncate text-sm font-medium text-foreground">
-                      {selectedFile.file.name}
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {selectedFile.status === 'done'
-                        ? 'Use comparar para revisar e download para fechar esse item.'
-                        : selectedFile.status === 'processing'
-                          ? `${selectedFile.statusLabel} • ${selectedFile.progress}%`
-                          : 'Acompanhe o progresso ou ajuste depois via reprocessamento explícito.'}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="hero-outline"
-                      size="sm"
-                      disabled={selectedFile.status !== 'done'}
-                      onClick={() => onOpenComparison(selectedFile.id)}
-                    >
-                      <Eye className="h-4 w-4" /> Comparar
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={selectedFile.status !== 'done'}
-                      onClick={() => onDownloadFile(selectedFile.id)}
-                    >
-                      <Download className="h-4 w-4" /> Baixar
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ) : null}
-
-            <div className="app-scrollbar flex-1 space-y-3 overflow-auto pr-1">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_320px]">
+          
+          {/* Main List Area */}
+          <section className="flex flex-col min-h-[600px] glass-panel p-4">
+            <div className="app-scrollbar flex-1 space-y-2 overflow-auto pr-1">
               {files.map((item) => {
                 const savedBytes = Math.max(
                   0,
                   item.originalSize - (item.newSize ?? item.originalSize)
                 );
                 const isDone = item.status === 'done';
-                const isCompact = density === 'compact';
                 const isSelected = selectedId === item.id;
+                
                 return (
                   <article
                     key={item.id}
                     className={cn(
-                      'group rounded-[8px] border border-white/8 bg-background/52 transition-colors',
-                      isCompact ? 'p-3' : 'p-4',
-                      selectedId === item.id && 'border-primary/25 bg-background/72'
+                      'group rounded-[8px] border border-border bg-card transition-colors p-3 flex gap-4',
+                      isSelected && 'border-primary/40 bg-secondary/30'
                     )}
                     onClick={() => onSelectFile(item.id)}
                   >
-                    <div className="flex gap-4">
-                      {!isCompact ? (
-                        <button
-                          data-testid={`file-preview-${item.id}`}
-                          type="button"
-                          className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-[8px] border border-white/8 bg-secondary"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            if (isDone) onOpenComparison(item.id);
-                          }}
-                        >
-                          <img
-                            src={item.compressedPreviewUrl ?? item.previewUrl}
-                            alt={item.file.name}
-                            className="h-full w-full object-cover"
-                          />
-                        </button>
-                      ) : null}
+                    <div
+                      className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-[6px] border border-border bg-secondary"
+                    >
+                      <img
+                        src={item.compressedPreviewUrl ?? item.previewUrl}
+                        alt={item.file.name}
+                        className="h-full w-full object-cover transition-transform group-hover:scale-110"
+                      />
+                    </div>
 
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-medium text-foreground md:text-base">
-                              {item.file.name}
-                            </p>
-                            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                              <span>{formatBytes(item.originalSize)}</span>
-                              {item.newSize ? <span>→ {formatBytes(item.newSize)}</span> : null}
-                              {savedBytes > 0 ? (
-                                <span className="text-primary">-{formatBytes(savedBytes)}</span>
-                              ) : null}
-                              <span className="rounded-full border border-white/8 px-2 py-0.5">
-                                {isDone ? formatTag(item.chosenFormat) : item.statusLabel}
-                              </span>
-                            </div>
-                            {isSelected && !isCompact ? (
-                              <p className="mt-2 text-xs text-muted-foreground">
-                                {isDone
-                                  ? 'Pronto para comparar ou baixar.'
-                                  : item.status === 'processing'
-                                    ? `${item.statusLabel} • ${item.progress}%`
-                                    : 'Esse item aguarda o comando de processamento.'}
-                              </p>
+                    <div className="min-w-0 flex-1 flex flex-col justify-center">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium text-foreground">
+                            {item.file.name}
+                          </p>
+                          <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                            <span>{formatBytes(item.originalSize)}</span>
+                            {item.newSize ? <span>→ {formatBytes(item.newSize)}</span> : null}
+                            {savedBytes > 0 ? (
+                              <span className="text-primary">-{formatBytes(savedBytes)}</span>
                             ) : null}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <IconButton
-                              dataTestId={`file-compare-${item.id}`}
-                              label="Comparar"
-                              disabled={!isDone}
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                onOpenComparison(item.id);
-                              }}
-                            >
-                              <Eye className="h-3.5 w-3.5" />
-                            </IconButton>
-                            <IconButton
-                              dataTestId={`file-download-${item.id}`}
-                              label="Baixar"
-                              disabled={!isDone}
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                onDownloadFile(item.id);
-                              }}
-                            >
-                              <Download className="h-3.5 w-3.5" />
-                            </IconButton>
-                            {isSelected ? (
-                              <>
-                                <IconButton
-                                  dataTestId={`file-reprocess-${item.id}`}
-                                  label={hasProcessedOnce ? 'Reprocessar' : 'Processar'}
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    onReprocessFile(item.id);
-                                  }}
-                                >
-                                  <RefreshCcw className="h-3.5 w-3.5" />
-                                </IconButton>
-                                <IconButton
-                                  dataTestId={`file-remove-${item.id}`}
-                                  label="Remover"
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    onRemoveFile(item.id);
-                                  }}
-                                >
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </IconButton>
-                              </>
-                            ) : null}
+                            <span className="rounded-full border border-white/8 px-1.5 py-px">
+                              {isDone ? formatTag(item.chosenFormat) : item.statusLabel}
+                            </span>
                           </div>
                         </div>
-
-                        {item.status === 'processing' ? (
-                          <div className="mt-3 h-1.5 rounded-full bg-border/60">
-                            <div
-                              className="h-1.5 rounded-full bg-primary transition-all duration-200"
-                              style={{ width: `${item.progress}%` }}
-                            />
-                          </div>
-                        ) : null}
-                        {item.status === 'error' ? (
-                          <p className="mt-3 flex items-center gap-1 text-xs text-destructive">
-                            <AlertCircle className="h-3.5 w-3.5" />{' '}
-                            {item.errorMessage ?? 'Erro ao comprimir'}
-                          </p>
-                        ) : null}
+                        <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                          <IconButton
+                            label="Comparar"
+                            disabled={!isDone}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onOpenComparison(item.id);
+                            }}
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                          </IconButton>
+                          <IconButton
+                            label="Baixar"
+                            disabled={!isDone}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onDownloadFile(item.id);
+                            }}
+                          >
+                            <Download className="h-3.5 w-3.5" />
+                          </IconButton>
+                          <IconButton
+                            label="Reprocessar"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onReprocessFile(item.id);
+                            }}
+                          >
+                            <RefreshCcw className="h-3.5 w-3.5" />
+                          </IconButton>
+                          <IconButton
+                            label="Remover"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onRemoveFile(item.id);
+                            }}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </IconButton>
+                        </div>
                       </div>
+                      {item.status === 'processing' ? (
+                        <div className="mt-2 h-1 rounded-full bg-border/60 w-full max-w-[200px]">
+                          <div
+                            className="h-1 rounded-full bg-primary transition-all duration-200"
+                            style={{ width: `${item.progress}%` }}
+                          />
+                        </div>
+                      ) : null}
+                      {item.status === 'error' ? (
+                        <p className="mt-1.5 flex items-center gap-1 text-[11px] text-destructive">
+                          <AlertCircle className="h-3 w-3" /> {item.errorMessage ?? 'Erro'}
+                        </p>
+                      ) : null}
                     </div>
                   </article>
                 );
               })}
             </div>
-
-            <div className="mt-4 rounded-[8px] border border-dashed border-white/10 bg-background/45 p-4">
-              <label className="flex cursor-pointer items-center justify-between gap-4">
-                <div>
-                  <p className="font-medium text-foreground">Adicionar mais arquivos</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Novos itens entram na fila com os parâmetros atuais e aguardam seu comando.
-                  </p>
-                </div>
-                <span>
-                  <Button variant="outline" size="sm">
-                    <Plus className="h-4 w-4" /> Inserir lote
-                  </Button>
-                </span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={(event) => handleMoreFiles(event.target.files)}
-                />
-              </label>
-            </div>
           </section>
 
+          {/* Unified Sidebar */}
           <aside className="space-y-4">
             <div className="glass-panel p-5 space-y-5">
               <div>
-                <p className="section-label mb-2">Inspector</p>
-                <h3 className="font-display text-xl font-semibold text-foreground">
-                  Parâmetros globais
-                </h3>
+                <h3 className="font-display text-lg font-medium text-foreground">Parâmetros</h3>
               </div>
-              <div>
-                <label className="mb-2 block text-xs text-muted-foreground">
-                  Qualidade — {Math.round(quality * 100)}%
-                </label>
-                <input
-                  type="range"
-                  min="35"
-                  max="100"
-                  value={Math.round(quality * 100)}
-                  onChange={(event) =>
-                    onSettingsChange({ quality: Number(event.target.value) / 100 })
-                  }
-                  className="range-input"
-                />
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="mb-1.5 flex justify-between text-xs text-muted-foreground">
+                    <span>Qualidade</span>
+                    <span>{Math.round(quality * 100)}%</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="35"
+                    max="100"
+                    value={Math.round(quality * 100)}
+                    onChange={(event) =>
+                      onSettingsChange({ quality: Number(event.target.value) / 100 })
+                    }
+                    className="range-input"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs text-muted-foreground">Escala</label>
+                  <select
+                    value={String(scale)}
+                    onChange={(event) => onSettingsChange({ scale: Number(event.target.value) })}
+                    className="field-input h-9 text-xs"
+                  >
+                    <option value="0.5">50%</option>
+                    <option value="0.75">75%</option>
+                    <option value="1">100%</option>
+                    <option value="1.5">150%</option>
+                    <option value="2">200%</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs text-muted-foreground">Formato</label>
+                  <select
+                    value={outputFormat}
+                    onChange={(event) =>
+                      onSettingsChange({ outputFormat: event.target.value as OutputFormat })
+                    }
+                    className="field-input h-9 text-xs"
+                  >
+                    <option value="auto">{t('engine.output_auto')}</option>
+                    <option value="original">{t('engine.output_original')}</option>
+                    <option value="image/jpeg">JPEG</option>
+                    <option value="image/png">PNG</option>
+                    <option value="image/webp">WebP</option>
+                    <option value="image/avif">AVIF</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs text-muted-foreground">Otimização</label>
+                  <select
+                    value={optimizationMode}
+                    onChange={(event) =>
+                      onSettingsChange({ optimizationMode: event.target.value as OptimizationMode })
+                    }
+                    className="field-input h-9 text-xs"
+                  >
+                    <option value="balanced">Balanceado</option>
+                    <option value="max-compression">Compressão máxima</option>
+                    <option value="max-speed">Velocidade máxima</option>
+                  </select>
+                </div>
               </div>
-              <div>
-                <label className="mb-2 block text-xs text-muted-foreground">Escala</label>
-                <select
-                  value={String(scale)}
-                  onChange={(event) => onSettingsChange({ scale: Number(event.target.value) })}
-                  className="field-input"
-                >
-                  <option value="0.5">50%</option>
-                  <option value="0.75">75%</option>
-                  <option value="1">100%</option>
-                  <option value="1.5">150%</option>
-                  <option value="2">200%</option>
-                </select>
-              </div>
-              <div>
-                <label className="mb-2 block text-xs text-muted-foreground">Formato de saída</label>
-                <select
-                  value={outputFormat}
-                  onChange={(event) =>
-                    onSettingsChange({ outputFormat: event.target.value as OutputFormat })
-                  }
-                  className="field-input"
-                >
-                  <option value="auto">{t('engine.output_auto')}</option>
-                  <option value="original">{t('engine.output_original')}</option>
-                  <option value="image/jpeg">JPEG</option>
-                  <option value="image/png">PNG</option>
-                  <option value="image/webp">WebP</option>
-                  <option value="image/avif">AVIF</option>
-                </select>
-                {shouldSuggestModernFormat ? (
-                  <p className="mt-2 text-xs leading-6 text-muted-foreground">
-                    {t('engine.format_hint_max_compression')}
-                  </p>
-                ) : null}
-              </div>
-              <div>
-                <label className="mb-2 block text-xs text-muted-foreground">
-                  Modo de otimização
-                </label>
-                <select
-                  value={optimizationMode}
-                  onChange={(event) =>
-                    onSettingsChange({ optimizationMode: event.target.value as OptimizationMode })
-                  }
-                  className="field-input"
-                >
-                  <option value="balanced">Balanceado</option>
-                  <option value="max-compression">Compressão máxima</option>
-                  <option value="max-speed">Velocidade máxima</option>
-                </select>
-              </div>
-            </div>
 
-            <div className="glass-panel space-y-4 p-5">
-              <div>
-                <p className="section-label mb-2">Próxima ação</p>
-                <p className="text-sm leading-6 text-muted-foreground">{primaryActionHint}</p>
-              </div>
-              <Button
-                id="optimizeQueueBtn"
-                variant="hero"
-                className="w-full"
-                onClick={onReprocessAll}
-                disabled={processingCount > 0}
-              >
-                <Wand2 className="h-4 w-4" /> {primaryActionLabel}
-              </Button>
-              {selectedFile ? (
+              <div className="pt-2 border-t border-border/70">
                 <Button
-                  id="optimizeSelectedBtn"
-                  variant="hero-outline"
-                  className="w-full"
-                  onClick={onReprocessSelected}
-                  disabled={selectedActionDisabled || processingCount > 0}
+                  id="optimizeQueueBtn"
+                  variant="hero"
+                  className="w-full font-medium"
+                  onClick={onReprocessAll}
+                  disabled={processingCount > 0}
                 >
-                  {hasProcessedOnce ? 'Reprocessar selecionado' : 'Processar selecionado'}
+                  <Wand2 className="h-4 w-4 mr-1.5" /> {primaryActionLabel}
                 </Button>
-              ) : null}
-              {doneCount > 0 ? (
+                {totalSavedBytes > 0 && (
+                  <p className="mt-2 text-center text-xs text-muted-foreground">
+                    Economizado: <span className="text-primary font-medium">{formatBytes(totalSavedBytes)} ({savingsPercent.toFixed(1)}%)</span>
+                  </p>
+                )}
+              </div>
+
+              {doneCount > 0 && (
                 <Button
                   id="downloadAllBtn"
                   variant="outline"
-                  className="w-full"
+                  className="w-full text-sm"
                   onClick={() => void onDownloadAll()}
                 >
-                  <Download className="h-4 w-4" /> Download todos ({doneCount})
+                  <Download className="h-4 w-4 mr-1.5" /> Baixar concluídos ({doneCount})
                 </Button>
-              ) : null}
-              <div className="border-t border-border/70 pt-3">
-                <Button id="resetSessionBtn" variant="ghost" className="w-full" onClick={onBack}>
-                  Limpar sessão
-                </Button>
-              </div>
-            </div>
+              )}
 
-            <div className="glass-panel p-5">
-              <p className="section-label mb-2">Resumo</p>
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center justify-between text-muted-foreground">
-                  <span>Original</span>
-                  <span className="text-foreground">{formatBytes(totalOriginal)}</span>
-                </div>
-                <div className="flex items-center justify-between text-muted-foreground">
-                  <span>Comprimido</span>
-                  <span className="text-foreground">{formatBytes(totalCompressed)}</span>
-                </div>
-                <div className="h-px bg-border/70" />
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Economizado</span>
-                  <span className="font-semibold text-primary">
-                    {formatBytes(totalSavedBytes)} ({savingsPercent.toFixed(1)}%)
-                  </span>
-                </div>
+              <div className="pt-1">
+                <button 
+                  type="button" 
+                  className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={onBack}
+                >
+                  Limpar sessão
+                </button>
               </div>
+
             </div>
           </aside>
         </div>
@@ -586,15 +374,15 @@ function IconButton({
       type="button"
       disabled={disabled}
       onClick={onClick}
+      title={label}
       className={cn(
-        'inline-flex h-9 items-center gap-2 rounded-[8px] border px-3 text-xs transition-colors',
+        'inline-flex h-8 w-8 items-center justify-center rounded-[6px] border transition-colors',
         disabled
-          ? 'cursor-not-allowed border-border/40 bg-white/[0.02] text-muted-foreground/50'
-          : 'border-border/70 bg-white/[0.03] text-muted-foreground hover:border-primary/25 hover:text-foreground'
+          ? 'cursor-not-allowed border-transparent bg-muted/10 text-muted-foreground/30'
+          : 'border-transparent bg-muted/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground'
       )}
     >
       {children}
-      <span className="hidden lg:inline">{label}</span>
     </button>
   );
 }

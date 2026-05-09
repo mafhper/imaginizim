@@ -12,7 +12,7 @@
     ),
     linear-gradient(
       90deg,
-      color-mix(in srgb, var(--accent-aurora-a) 8%, transparent),
+      color-mix(in srgb, var(--accent-warm-a) 8%, transparent),
       transparent 34%
     );
 }
@@ -76,7 +76,7 @@
   width: max(18px, calc(var(--nav-spot-width) - 24px));
   height: 1px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--accent-aurora-b) 56%, transparent);
+  background: color-mix(in srgb, var(--accent-warm-b) 56%, transparent);
   opacity: var(--nav-spot-opacity);
   transition:
     opacity 250ms ease,
@@ -145,12 +145,12 @@
     ),
     linear-gradient(
       90deg,
-      color-mix(in srgb, var(--accent-aurora-b) 12%, transparent),
+      color-mix(in srgb, var(--accent-warm-b) 12%, transparent),
       transparent 66%
     );
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, white 16%, transparent),
-    0 0 0 1px color-mix(in srgb, var(--accent-aurora-a) 12%, transparent);
+    0 0 0 1px color-mix(in srgb, var(--accent-warm-a) 12%, transparent);
 }
 
 .mobile-nav-toggle {
@@ -293,9 +293,9 @@
   background: linear-gradient(
     90deg,
     transparent,
-    color-mix(in srgb, var(--accent-aurora-a) 10%, transparent) 18%,
+    color-mix(in srgb, var(--accent-warm-a) 10%, transparent) 18%,
     color-mix(in srgb, var(--hairline) 72%, transparent) 50%,
-    color-mix(in srgb, var(--accent-aurora-b) 10%, transparent) 82%,
+    color-mix(in srgb, var(--accent-warm-b) 10%, transparent) 82%,
     transparent
   );
 }
@@ -529,7 +529,7 @@
     ),
     radial-gradient(
       circle at 100% 0%,
-      color-mix(in srgb, var(--accent-aurora-a) 10%, transparent),
+      color-mix(in srgb, var(--accent-warm-a) 10%, transparent),
       transparent 44%
     );
   box-shadow:
@@ -585,12 +585,12 @@
   background:
     radial-gradient(
       circle at 14% 16%,
-      color-mix(in srgb, var(--accent-aurora-b) 10%, transparent),
+      color-mix(in srgb, var(--accent-warm-b) 10%, transparent),
       transparent 30%
     ),
     radial-gradient(
       circle at 78% 18%,
-      color-mix(in srgb, var(--accent-aurora-a) 12%, transparent),
+      color-mix(in srgb, var(--accent-warm-a) 12%, transparent),
       transparent 28%
     );
   pointer-events: none;
@@ -675,7 +675,7 @@
 .footer-commit-line a {
   color: var(--text-primary);
   text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--accent-aurora-a) 56%, transparent);
+  text-decoration-color: color-mix(in srgb, var(--accent-warm-a) 56%, transparent);
   text-underline-offset: 2px;
 }
 
@@ -685,7 +685,7 @@
   font-size: 0.79rem;
   color: var(--text-secondary);
   text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--accent-aurora-a) 32%, transparent);
+  text-decoration-color: color-mix(in srgb, var(--accent-warm-a) 32%, transparent);
   text-underline-offset: 2px;
 }
 

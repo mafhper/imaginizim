@@ -113,7 +113,7 @@
   height: 6px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--accent) 90%, white);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--accent-aurora-b) 60%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent-warm-b) 60%, transparent);
 }
 
 .visual-pipeline {
@@ -174,9 +174,9 @@
   height: 1px;
   background: linear-gradient(
     90deg,
-    color-mix(in srgb, var(--accent-aurora-a) 14%, transparent),
+    color-mix(in srgb, var(--accent-warm-a) 14%, transparent),
     color-mix(in srgb, var(--hairline) 86%, transparent),
-    color-mix(in srgb, var(--accent-aurora-b) 18%, transparent)
+    color-mix(in srgb, var(--accent-warm-b) 18%, transparent)
   );
 }
 
@@ -190,10 +190,10 @@
     radial-gradient(circle, color-mix(in srgb, white 92%, transparent), transparent 58%),
     linear-gradient(
       135deg,
-      color-mix(in srgb, var(--accent-aurora-a) 94%, white),
-      color-mix(in srgb, var(--accent-aurora-b) 92%, white)
+      color-mix(in srgb, var(--accent-warm-a) 94%, white),
+      color-mix(in srgb, var(--accent-warm-b) 92%, white)
     );
-  box-shadow: 0 0 24px color-mix(in srgb, var(--accent-aurora-b) 32%, transparent);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--accent-warm-b) 32%, transparent);
 }
 
 .visual-pulse:nth-child(1) {
@@ -279,8 +279,8 @@
   border: 1px solid color-mix(in srgb, var(--hairline) 78%, transparent);
   background: linear-gradient(
     160deg,
-    color-mix(in srgb, var(--accent-aurora-a) 18%, var(--bg-card)),
-    color-mix(in srgb, var(--accent-aurora-b) 14%, var(--bg-soft))
+    color-mix(in srgb, var(--accent-warm-a) 18%, var(--bg-card)),
+    color-mix(in srgb, var(--accent-warm-b) 14%, var(--bg-soft))
   );
 }
 
@@ -344,9 +344,9 @@
   height: 1px;
   background: linear-gradient(
     90deg,
-    color-mix(in srgb, var(--accent-aurora-a) 24%, transparent),
-    color-mix(in srgb, var(--accent-aurora-b) 18%, transparent),
-    color-mix(in srgb, var(--accent-aurora-c) 20%, transparent)
+    color-mix(in srgb, var(--accent-warm-a) 24%, transparent),
+    color-mix(in srgb, var(--accent-warm-b) 18%, transparent),
+    color-mix(in srgb, var(--accent-warm-c) 20%, transparent)
   );
 }
 

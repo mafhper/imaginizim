@@ -3,20 +3,29 @@ import logoLight from '../../assets/logo-imaginizim-light.svg';
 
 interface BrandMarkProps {
   compact?: boolean;
+  className?: string;
 }
 
-export function BrandMark({ compact = false }: BrandMarkProps) {
+export function BrandMark({ compact = false, className }: BrandMarkProps) {
   return (
-    <span className="inline-flex items-center gap-2.5">
-      <picture>
-        <source media="(prefers-color-scheme: light)" srcSet={logoLight} />
-        <img src={logoDark} alt="" aria-hidden="true" className="h-8 w-8 rounded-[8px]" />
-      </picture>
-      {!compact ? (
-        <span className="font-display text-lg font-semibold tracking-tight text-foreground">
+    <span className={cn("inline-flex items-center gap-2", className)}>
+      {/* Official "iZ" Icon Logo */}
+      <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-xl shadow-sm">
+        <img src={logoLight} alt="iZ" className="absolute inset-0 h-full w-full dark:opacity-0 transition-opacity" />
+        <img src={logoDark} alt="iZ" className="absolute inset-0 h-full w-full opacity-0 dark:opacity-100 transition-opacity" />
+      </div>
+      
+      {/* Text Logo - Written as text, hidden when compact */}
+      <div className={cn(
+        "overflow-hidden transition-all duration-1000 ease-[cubic-bezier(0.25,1,0.5,1)]",
+        compact ? "w-0 opacity-0" : "w-[120px] opacity-100"
+      )}>
+        <span className="font-display text-base font-bold tracking-tight text-foreground whitespace-nowrap">
           IMAGINIZIM
         </span>
-      ) : null}
+      </div>
     </span>
   );
 }
+
+import { cn } from '../utils/ui';

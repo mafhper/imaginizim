@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { currentLang, subscribeLanguageChange, t } from '../../i18n';
 import { cn } from '../utils/ui';
 import { BrandMark } from './BrandMark';
@@ -18,65 +18,101 @@ export function Header() {
     []
   );
 
+  const location = useLocation();
+  const isHome = location.pathname === '/';
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const navItems = [
     { label: t('nav.app'), path: '/' },
-    { label: t('nav.about'), path: '/sobre' },
-    { label: t('nav.faq'), path: '/faq' }
+    { label: t('nav.about'), path: '/sobre' }
   ];
 
   return (
     <>
-      <header className="fixed left-0 right-0 top-0 z-50 border-b border-border/60 bg-background/82 backdrop-blur-xl">
-        <div className="site-shell flex h-16 items-center justify-between gap-4">
+      <header 
+        className={cn(
+          "fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-1000 ease-[cubic-bezier(0.25,1,0.5,1)]",
+          "rounded-full border border-border/40 bg-background/60 backdrop-blur-xl shadow-2xl",
+          isHome && !scrolled 
+            ? "w-[calc(100%-2rem)] max-w-6xl h-16 px-6" 
+            : "w-[calc(100%-2rem)] md:w-fit md:min-w-[400px] h-14 px-4"
+        )}
+      >
+        <div className="flex h-full items-center justify-between gap-4">
           <NavLink
             to="/"
-            className="group flex items-center gap-2.5"
+            className="group flex items-center gap-2.5 flex-shrink-0"
             onClick={() => setMobileOpen(false)}
           >
-            <BrandMark />
+            <BrandMark 
+              compact={(!isHome || scrolled) && !mobileOpen} 
+              className={cn("transition-all duration-1000 ease-[cubic-bezier(0.25,1,0.5,1)]", (!isHome || scrolled) && "scale-95")} 
+            />
           </NavLink>
 
-          <nav className="nav-rail hidden items-center gap-1 rounded-[8px] border border-white/8 bg-secondary/50 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:flex">
+          <nav className={cn(
+            "hidden items-center gap-1 md:flex transition-all duration-1000 ease-[cubic-bezier(0.25,1,0.5,1)]",
+            (!isHome || scrolled) ? "scale-95" : "scale-100"
+          )}>
             {navItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
                 end={item.path === '/'}
                 onClick={() => setMobileOpen(false)}
+                className="relative"
               >
                 {({ isActive }) => (
-                  <Button
-                    variant={isActive ? 'nav-active' : 'nav'}
-                    size="sm"
-                    className="h-8 px-3 text-xs"
-                  >
+                  <span className={cn(
+                    "inline-flex h-8 items-center px-4 text-xs font-medium transition-all duration-300 rounded-full whitespace-nowrap",
+                    isActive 
+                      ? "bg-primary text-primary-foreground shadow-sm" 
+                      : "text-muted-foreground hover:bg-secondary/40 hover:text-foreground"
+                  )}>
                     {item.label}
-                  </Button>
+                  </span>
                 )}
               </NavLink>
             ))}
           </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <a
               href="https://github.com/mafhper/imaginizim"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground md:inline-flex"
+              className={cn(
+                "hidden items-center gap-2 text-sm text-muted-foreground transition-all duration-1000 ease-[cubic-bezier(0.25,1,0.5,1)] hover:text-foreground md:inline-flex",
+                (!isHome || scrolled) && "scale-95"
+              )}
             >
-              <GithubIcon className="h-4 w-4" /> GitHub
+              <GithubIcon className="h-4 w-4" />
+              <span className={cn(
+                "overflow-hidden transition-all duration-1000 ease-[cubic-bezier(0.25,1,0.5,1)]",
+                (!isHome || scrolled) ? "w-0 opacity-0" : "w-auto opacity-100"
+              )}>
+                GitHub
+              </span>
             </a>
             <Button
               id="mobileNavToggle"
-              variant="outline"
+              variant="ghost"
               size="icon"
-              className="mobile-nav-toggle border-white/8 bg-background/50 md:hidden"
+              className="mobile-nav-toggle md:hidden"
               onClick={() => setMobileOpen((prev) => !prev)}
               aria-expanded={mobileOpen}
               aria-controls="mobileNavSheet"
               aria-label={mobileOpen ? t('nav.close') : t('nav.menu')}
             >
-              {mobileOpen ? <CloseIcon className="h-4 w-4" /> : <MenuIcon className="h-4 w-4" />}
+              {mobileOpen ? <CloseIcon className="h-5 w-5" /> : <MenuIcon className="h-5 w-5" />}
             </Button>
           </div>
         </div>
@@ -84,7 +120,7 @@ export function Header() {
 
       <div
         className={cn(
-          'fixed inset-0 z-40 bg-black/44 backdrop-blur-sm transition-opacity duration-200 md:hidden',
+          'fixed inset-0 z-40 bg-black/20 backdrop-blur-sm transition-opacity duration-200 md:hidden',
           mobileOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         )}
         onClick={() => setMobileOpen(false)}
@@ -94,7 +130,7 @@ export function Header() {
       <div
         id="mobileNavSheet"
         className={cn(
-          'mobile-nav-sheet fixed inset-x-4 top-[4.75rem] z-50 rounded-[8px] border border-white/10 bg-card/98 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.42)] backdrop-blur-xl transition-all duration-200 md:hidden',
+          'mobile-nav-sheet fixed inset-x-4 top-[4.75rem] z-50 rounded-[8px] border border-border bg-card p-4 shadow-xl backdrop-blur-xl transition-all duration-200 md:hidden',
           mobileOpen ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-2 opacity-0'
         )}
       >
@@ -116,8 +152,8 @@ export function Header() {
                 cn(
                   'rounded-[8px] px-4 py-3 text-sm transition-colors',
                   isActive
-                    ? 'bg-white/[0.06] text-foreground'
-                    : 'text-muted-foreground hover:bg-white/[0.04] hover:text-foreground'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
                 )
               }
             >

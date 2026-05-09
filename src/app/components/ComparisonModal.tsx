@@ -120,7 +120,7 @@ export function ComparisonModal(props: ComparisonModalProps) {
       />
 
       <div className="glass-panel relative z-[1] w-full max-w-6xl overflow-hidden">
-        <header className="flex flex-wrap items-start justify-between gap-4 border-b border-white/8 px-5 py-4 md:px-6">
+        <header className="flex flex-wrap items-start justify-between gap-4 border-b border-border px-5 py-4 md:px-6">
           <div className="min-w-0">
             <p className="section-label mb-2">Comparação</p>
             <h2 className="font-display truncate text-2xl font-semibold text-foreground">
@@ -139,21 +139,21 @@ export function ComparisonModal(props: ComparisonModalProps) {
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="border border-white/8 bg-background/50"
+            className="border border-border bg-background/50"
           >
             <X className="h-4 w-4" />
           </Button>
         </header>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/8 px-5 py-4 md:px-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4 md:px-6">
           <div className="space-y-2">
-            <div className="inline-flex rounded-[8px] border border-white/8 bg-background/58 p-1">
+            <div className="inline-flex rounded-[8px] border border-border bg-background/50 p-1">
               <button
                 id="modeSplitBtn"
                 type="button"
                 className={cn(
                   'rounded-[8px] px-4 py-2 text-sm transition-colors',
-                  mode === 'split' ? 'bg-white/[0.08] text-foreground' : 'text-muted-foreground'
+                  mode === 'split' ? 'bg-secondary text-foreground' : 'text-muted-foreground'
                 )}
                 onClick={() => onModeChange('split')}
               >
@@ -164,7 +164,7 @@ export function ComparisonModal(props: ComparisonModalProps) {
                 type="button"
                 className={cn(
                   'rounded-[8px] px-4 py-2 text-sm transition-colors',
-                  mode === 'overlay' ? 'bg-white/[0.08] text-foreground' : 'text-muted-foreground'
+                  mode === 'overlay' ? 'bg-secondary text-foreground' : 'text-muted-foreground'
                 )}
                 onClick={() => onModeChange('overlay')}
               >
@@ -275,7 +275,7 @@ export function ComparisonModal(props: ComparisonModalProps) {
           )}
         </div>
 
-        <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-white/8 px-5 py-4 md:px-6">
+        <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-border px-5 py-4 md:px-6">
           <p className="text-sm text-muted-foreground">
             {formatBytes(file.originalSize)} → {formatBytes(finalSize)} ({savingsPercent}%{' '}
             {t('preview.saved')})

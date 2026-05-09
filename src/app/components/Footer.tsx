@@ -18,17 +18,17 @@ export function Footer() {
   );
 
   return (
-    <footer className="border-t border-border/60 py-8 md:py-10">
-      <div className="site-shell grid gap-6 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+    <footer className="border-t border-border/40 py-12 md:py-16 mt-auto relative z-10 bg-background/50 backdrop-blur-sm">
+      <div className="container max-w-6xl grid gap-8 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
         <div className="max-w-xl">
-          <p className="font-display text-sm font-semibold tracking-[0.08em] text-foreground">
+          <p className="font-display text-[11px] font-medium tracking-[0.2em] uppercase text-foreground mb-3">
             IMAGINIZIM
           </p>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">{t('footer.caption')}</p>
+          <p className="text-sm leading-relaxed text-muted-foreground">{t('footer.caption')}</p>
         </div>
 
-        <div className="flex flex-col gap-3 text-sm text-muted-foreground md:items-end">
-          <div className="flex flex-wrap items-center gap-2 md:justify-end">
+        <div className="flex flex-col gap-4 text-sm text-muted-foreground md:items-end">
+          <div className="flex flex-wrap items-center gap-3 md:justify-end">
             <ThemeSelector />
             <LocaleSelector />
           </div>
@@ -36,17 +36,17 @@ export function Footer() {
             href={meta.repositoryUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 transition-colors hover:text-foreground"
+            className="inline-flex items-center gap-2 transition-colors hover:text-foreground text-[13px]"
           >
-            <GithubIcon className="h-4 w-4" /> {t('footer.repo_cta')}
+            <GithubIcon className="h-3.5 w-3.5" /> {t('footer.repo_cta')}
           </a>
           <a
             href={meta.commitUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 transition-colors hover:text-foreground"
+            className="inline-flex items-center gap-2 transition-colors hover:text-foreground text-[13px]"
           >
-            <ClockIcon className="h-4 w-4" /> {t('footer.latest_commit')} {meta.shortHash}
+            <ClockIcon className="h-3.5 w-3.5" /> {t('footer.latest_commit')} {meta.shortHash}
           </a>
         </div>
       </div>

@@ -19,12 +19,12 @@ body {
   background:
     radial-gradient(
       circle at 84% -10%,
-      color-mix(in srgb, var(--accent-aurora-a) 16%, transparent),
+      color-mix(in srgb, var(--accent-warm-a) 16%, transparent),
       transparent 42%
     ),
     radial-gradient(
       circle at -8% 12%,
-      color-mix(in srgb, var(--accent-aurora-b) 12%, transparent),
+      color-mix(in srgb, var(--accent-warm-b) 12%, transparent),
       transparent 34%
     ),
     linear-gradient(
@@ -40,12 +40,12 @@ body {
     background:
       radial-gradient(
         circle at 84% -10%,
-        color-mix(in srgb, var(--accent-aurora-a) 12%, transparent),
+        color-mix(in srgb, var(--accent-warm-a) 12%, transparent),
         transparent 42%
       ),
       radial-gradient(
         circle at -8% 12%,
-        color-mix(in srgb, var(--accent-aurora-b) 11%, transparent),
+        color-mix(in srgb, var(--accent-warm-b) 11%, transparent),
         transparent 34%
       ),
       linear-gradient(180deg, #f9fbff 0%, var(--bg-base) 44%);
