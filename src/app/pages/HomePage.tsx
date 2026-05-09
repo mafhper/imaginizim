@@ -1,10 +1,8 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
 import { RouteFallback } from '../components/RouteFallback';
 import { useCompressionApp } from '../providers/CompressionProvider';
-import { GithubIcon, ImageIcon } from '../components/icons/AppIcons';
-import { Button } from '../components/ui/Button';
+import { ImageIcon } from '../components/icons/AppIcons';
 import { LiquidMeshBackdrop } from '../components/home/LiquidMeshBackdrop';
 
 const ComparisonModal = lazy(() =>
@@ -85,20 +83,15 @@ export function HomePage() {
   return (
     <div
       data-page="home"
-      className="home-hero relative flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center overflow-hidden px-4"
+      className="home-hero relative flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center overflow-x-hidden px-4 py-12 md:py-0"
     >
       <LiquidMeshBackdrop />
 
       <div className="home-hero__copy relative z-10 mb-10 max-w-3xl text-center">
-        <div className="mb-6">
-          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.24em] text-muted-foreground">
-            {t('engine.local_badge')}
-          </span>
-        </div>
         <h1 className="font-display mb-5 text-4xl font-normal tracking-[-0.03em] leading-tight text-foreground md:text-[3.4rem]">
           {t('hero.title')}
         </h1>
-        <p className="mx-auto max-w-[58ch] text-lg leading-8 text-muted-foreground/90">
+        <p className="mx-auto max-w-[58ch] text-lg leading-8 text-foreground/80">
           {t('hero.subtitle')}
         </p>
       </div>
@@ -142,9 +135,11 @@ export function HomePage() {
                 {isDragging ? t('engine.status_processing') : t('engine.init_title')}
               </h2>
               <p className="mb-8 text-[13px] text-muted-foreground">{t('engine.init_desc')}</p>
-              <div className="flex items-center justify-center gap-4 text-[11px] font-mono tracking-widest text-muted-foreground/60 uppercase">
+              <div className="flex items-center justify-center gap-6 text-xs font-mono tracking-widest text-muted-foreground font-medium uppercase">
                 {['PNG', 'JPG', 'SVG', 'WebP', 'AVIF'].map((format) => (
-                  <span key={format}>{format}</span>
+                  <span key={format} className="opacity-80 hover:opacity-100 transition-opacity">
+                    {format}
+                  </span>
                 ))}
               </div>
             </div>
@@ -160,21 +155,6 @@ export function HomePage() {
         <span>{t('hero.tag3')}</span>
       </div>
 
-      <div className="relative z-10 mt-12 flex flex-wrap items-center justify-center gap-3">
-        <Link to="/sobre">
-          <Button variant="outline" className="rounded-full px-6 border-white/10 hover:bg-white/5">
-            {t('nav.about')}
-          </Button>
-        </Link>
-        <a href="https://github.com/mafhper/imaginizim" target="_blank" rel="noopener noreferrer">
-          <Button
-            variant="ghost"
-            className="rounded-full px-6 text-muted-foreground hover:text-foreground"
-          >
-            <GithubIcon className="h-4 w-4 mr-2" /> GitHub
-          </Button>
-        </a>
-      </div>
     </div>
   );
 }

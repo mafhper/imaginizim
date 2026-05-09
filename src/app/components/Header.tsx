@@ -41,15 +41,22 @@ export function Header() {
     <>
       <header
         className={cn(
-          'fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-[650ms] ease-[cubic-bezier(0.34,1.1,0.64,1)]',
-          'rounded-full border border-border/40 bg-background/60 backdrop-blur-xl shadow-2xl overflow-hidden',
+          'fixed top-6 left-1/2 -translate-x-1/2 z-50 transition-all duration-[650ms] ease-[cubic-bezier(0.34,1.1,0.64,1)]',
+          'rounded-full border border-border/40 shadow-2xl overflow-hidden',
           'motion-reduce:transition-none',
+          'w-[calc(100%-2rem)] h-16',
           shouldExpand
-            ? 'w-[calc(100%-2rem)] max-w-6xl h-16 px-6'
-            : 'w-[calc(100%-2rem)] md:w-fit h-14 px-4 shadow-lg'
+            ? 'max-w-5xl px-12 bg-background/20 backdrop-blur-2xl'
+            : 'max-w-[420px] px-6 shadow-lg bg-background/85 backdrop-blur-md'
         )}
       >
-        <div className="flex h-full items-center justify-between md:justify-start gap-4 md:gap-8">
+        <div 
+          className={cn(
+            "relative flex h-full w-full items-center transition-all duration-[650ms] ease-[cubic-bezier(0.34,1.1,0.64,1)]",
+            shouldExpand ? 'justify-between' : 'justify-center gap-4 md:gap-6'
+          )}
+        >
+          {/* Logo Area */}
           <NavLink
             to="/"
             className="group flex items-center gap-2.5 flex-shrink-0"
@@ -59,15 +66,16 @@ export function Header() {
               compact={!shouldExpand && !mobileOpen}
               className={cn(
                 'transition-all duration-[650ms] ease-[cubic-bezier(0.34,1.1,0.64,1)]',
-                !shouldExpand && 'scale-95'
+                !shouldExpand && 'scale-[0.92]'
               )}
             />
           </NavLink>
 
+          {/* Navigation Center */}
           <nav
             className={cn(
               'hidden items-center gap-1 md:flex transition-all duration-[650ms] ease-[cubic-bezier(0.34,1.1,0.64,1)]',
-              !shouldExpand ? 'scale-95' : 'scale-100'
+              shouldExpand ? 'absolute left-1/2 -translate-x-1/2 scale-100' : 'flex-shrink-0 scale-[0.92]'
             )}
           >
             {navItems.map((item) => (
@@ -81,10 +89,10 @@ export function Header() {
                 {({ isActive }) => (
                   <span
                     className={cn(
-                      'inline-flex h-8 items-center px-4 text-xs font-medium transition-all duration-300 rounded-full whitespace-nowrap',
+                      'inline-flex h-9 items-center px-5 text-[13px] font-medium transition-all duration-300 rounded-full whitespace-nowrap',
                       isActive
                         ? 'bg-primary text-primary-foreground shadow-sm'
-                        : 'text-muted-foreground hover:bg-secondary/40 hover:text-foreground'
+                        : 'text-muted-foreground/90 hover:bg-secondary/40 hover:text-foreground'
                     )}
                   >
                     {item.label}
@@ -94,14 +102,15 @@ export function Header() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-2 flex-shrink-0 md:ml-auto">
+          {/* Actions Area */}
+          <div className="flex items-center gap-2 flex-shrink-0">
             <a
               href="https://github.com/mafhper/imaginizim"
               target="_blank"
               rel="noopener noreferrer"
               className={cn(
-                'hidden items-center gap-2 text-sm text-muted-foreground transition-all duration-[650ms] ease-[cubic-bezier(0.34,1.1,0.64,1)] hover:text-foreground md:inline-flex',
-                !shouldExpand && 'scale-95'
+                'hidden items-center gap-2 text-[13px] font-medium text-muted-foreground/90 transition-all duration-[650ms] ease-[cubic-bezier(0.34,1.1,0.64,1)] hover:text-foreground md:inline-flex',
+                !shouldExpand && 'scale-[0.92]'
               )}
             >
               <GithubIcon className="h-4 w-4" />
