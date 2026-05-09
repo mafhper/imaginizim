@@ -154,7 +154,6 @@ export function HomePage() {
         <span className="w-1 h-1 rounded-full bg-border"></span>
         <span>{t('hero.tag3')}</span>
       </div>
-
     </div>
   );
 }

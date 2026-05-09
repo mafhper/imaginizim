@@ -50,9 +50,9 @@ export function Header() {
             : 'max-w-[420px] px-6 shadow-lg bg-background/85 backdrop-blur-md'
         )}
       >
-        <div 
+        <div
           className={cn(
-            "relative flex h-full w-full items-center transition-all duration-[650ms] ease-[cubic-bezier(0.34,1.1,0.64,1)]",
+            'relative flex h-full w-full items-center transition-all duration-[650ms] ease-[cubic-bezier(0.34,1.1,0.64,1)]',
             shouldExpand ? 'justify-between' : 'justify-center gap-4 md:gap-6'
           )}
         >
@@ -75,7 +75,9 @@ export function Header() {
           <nav
             className={cn(
               'hidden items-center gap-1 md:flex transition-all duration-[650ms] ease-[cubic-bezier(0.34,1.1,0.64,1)]',
-              shouldExpand ? 'absolute left-1/2 -translate-x-1/2 scale-100' : 'flex-shrink-0 scale-[0.92]'
+              shouldExpand
+                ? 'absolute left-1/2 -translate-x-1/2 scale-100'
+                : 'flex-shrink-0 scale-[0.92]'
             )}
           >
             {navItems.map((item) => (

@@ -55,10 +55,7 @@ export function WorkspaceCenter({ onFiles }: WorkspaceCenterProps) {
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs font-mono tracking-widest text-muted-foreground font-medium uppercase">
             {['PNG', 'JPG', 'SVG', 'WEBP', 'AVIF'].map((format) => (
-              <span
-                key={format}
-                className="opacity-80 hover:opacity-100 transition-opacity"
-              >
+              <span key={format} className="opacity-80 hover:opacity-100 transition-opacity">
                 {format}
               </span>
             ))}

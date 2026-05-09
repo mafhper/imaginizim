@@ -223,10 +223,7 @@ export function AboutPage() {
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <a href={issueUrl} target="_blank" rel="noopener noreferrer">
-                  <Button
-                    variant="hero"
-                    className="rounded-full px-10 h-14 shadow-glow"
-                  >
+                  <Button variant="hero" className="rounded-full px-10 h-14 shadow-glow">
                     <GithubIcon className="h-5 w-5 mr-3" /> {t('faq.support_cta')}
                   </Button>
                 </a>

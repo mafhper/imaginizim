@@ -24,7 +24,9 @@ export function Footer() {
           <p className="font-display text-xs font-semibold tracking-[0.2em] uppercase text-foreground mb-3">
             IMAGINIZIM
           </p>
-          <p className="text-[15px] leading-relaxed text-muted-foreground font-medium">{t('footer.caption')}</p>
+          <p className="text-[15px] leading-relaxed text-muted-foreground font-medium">
+            {t('footer.caption')}
+          </p>
         </div>
 
         <div className="flex flex-col gap-4 text-sm text-muted-foreground md:items-end">
