@@ -35,29 +35,31 @@ export function Header() {
     { label: t('nav.about'), path: '/sobre' }
   ];
 
+  const shouldExpand = isHome && !scrolled;
+
   return (
     <>
       <header
         className={cn(
           'fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-[650ms] ease-[cubic-bezier(0.34,1.1,0.64,1)]',
-          'rounded-full border border-border/40 bg-background/60 backdrop-blur-xl shadow-2xl',
+          'rounded-full border border-border/40 bg-background/60 backdrop-blur-xl shadow-2xl overflow-hidden',
           'motion-reduce:transition-none',
-          isHome && !scrolled
+          shouldExpand
             ? 'w-[calc(100%-2rem)] max-w-6xl h-16 px-6'
-            : 'w-[calc(100%-2rem)] md:w-fit md:min-w-[400px] h-14 px-4 shadow-lg'
+            : 'w-[calc(100%-2rem)] md:w-fit h-14 px-4 shadow-lg'
         )}
       >
-        <div className="flex h-full items-center justify-between gap-4">
+        <div className="flex h-full items-center justify-between md:justify-start gap-4 md:gap-8">
           <NavLink
             to="/"
             className="group flex items-center gap-2.5 flex-shrink-0"
             onClick={() => setMobileOpen(false)}
           >
             <BrandMark
-              compact={(!isHome || scrolled) && !mobileOpen}
+              compact={!shouldExpand && !mobileOpen}
               className={cn(
                 'transition-all duration-[650ms] ease-[cubic-bezier(0.34,1.1,0.64,1)]',
-                (!isHome || scrolled) && 'scale-95'
+                !shouldExpand && 'scale-95'
               )}
             />
           </NavLink>
@@ -65,7 +67,7 @@ export function Header() {
           <nav
             className={cn(
               'hidden items-center gap-1 md:flex transition-all duration-[650ms] ease-[cubic-bezier(0.34,1.1,0.64,1)]',
-              !isHome || scrolled ? 'scale-95' : 'scale-100'
+              !shouldExpand ? 'scale-95' : 'scale-100'
             )}
           >
             {navItems.map((item) => (
@@ -92,21 +94,21 @@ export function Header() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-2 flex-shrink-0 md:ml-auto">
             <a
               href="https://github.com/mafhper/imaginizim"
               target="_blank"
               rel="noopener noreferrer"
               className={cn(
                 'hidden items-center gap-2 text-sm text-muted-foreground transition-all duration-[650ms] ease-[cubic-bezier(0.34,1.1,0.64,1)] hover:text-foreground md:inline-flex',
-                (!isHome || scrolled) && 'scale-95'
+                !shouldExpand && 'scale-95'
               )}
             >
               <GithubIcon className="h-4 w-4" />
               <span
                 className={cn(
                   'overflow-hidden transition-all duration-[650ms] ease-[cubic-bezier(0.34,1.1,0.64,1)]',
-                  !isHome || scrolled ? 'w-0 opacity-0' : 'w-auto opacity-100'
+                  !shouldExpand ? 'w-0 opacity-0' : 'w-auto opacity-100'
                 )}
               >
                 GitHub

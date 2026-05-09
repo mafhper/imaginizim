@@ -27,7 +27,9 @@ export function BrandMark({ compact = false, className }: BrandMarkProps) {
       <div
         className={cn(
           'overflow-hidden transition-all duration-[650ms] ease-[cubic-bezier(0.34,1.1,0.64,1)]',
-          compact ? 'w-0 opacity-0 blur-[2px] -translate-x-2' : 'w-[120px] opacity-100 blur-0 translate-x-0'
+          compact
+            ? 'w-0 opacity-0 blur-[2px] -translate-x-2'
+            : 'w-[120px] opacity-100 blur-0 translate-x-0'
         )}
       >
         <span className="font-display text-base font-bold tracking-tight text-foreground whitespace-nowrap">
