@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import { execSync } from 'node:child_process';
 import react from '@vitejs/plugin-react-swc';
+import tailwindcss from '@tailwindcss/vite';
 
 function readGitValue(command, fallback) {
   try {
@@ -14,7 +15,7 @@ function readGitValue(command, fallback) {
 
 export default defineConfig({
   base: '/imaginizim/',
-  plugins: [react()],
+  plugins: [tailwindcss(), react()],
   define: {
     __APP_COMMIT_HASH__: JSON.stringify(readGitValue('git rev-parse --short HEAD', 'unknown')),
     __APP_COMMIT_MESSAGE__: JSON.stringify(readGitValue('git log -1 --pretty=%s', 'No message')),
