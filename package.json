@@ -40,7 +40,7 @@
     "@tailwindcss/vite": "^4.3.0",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
-    "@typescript-eslint/eslint-plugin": "^8.59.0",
+    "@typescript-eslint/eslint-plugin": "^8.59.3",
     "@typescript-eslint/parser": "^8.59.0",
     "@vitejs/plugin-react-swc": "^4.3.0",
     "chrome-launcher": "^1.2.1",
