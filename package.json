@@ -42,7 +42,7 @@
     "@types/react-dom": "^19.2.2",
     "@typescript-eslint/eslint-plugin": "^8.59.0",
     "@typescript-eslint/parser": "^8.59.0",
-    "@vitejs/plugin-react-swc": "^4.3.0",
+    "@vitejs/plugin-react-swc": "^4.3.1",
     "chrome-launcher": "^1.2.1",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
