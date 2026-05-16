@@ -73,7 +73,7 @@
     "react": "19.2.6",
     "react-dom": "19.2.6",
     "react-i18next": "^17.0.7",
-    "react-router-dom": "7.15.0",
+    "react-router-dom": "7.15.1",
     "svgo": "^4.0.1",
     "vite-plugin-top-level-await": "^1.6.0",
     "vite-plugin-wasm": "^3.6.0"
