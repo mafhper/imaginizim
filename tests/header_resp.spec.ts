@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 
 const BREAKPOINTS = [
   { name: 'mobile', width: 375, height: 667 },
