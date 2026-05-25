@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { getProjectMeta } from '../../utils/projectMeta';
 import { BrowserIcon, ChevronDownIcon, GithubIcon } from '../components/icons/AppIcons';
 import { AnalyzeIcon, ExportIcon, ShieldIcon } from '../components/icons/StepIcons';

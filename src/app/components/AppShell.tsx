@@ -15,5 +15,3 @@ export function AppShell() {
     </div>
   );
 }
-
-import { cn } from '../utils/ui';
