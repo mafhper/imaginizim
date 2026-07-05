@@ -13,7 +13,7 @@ test.describe('Accessibility - Color Contrast', () => {
     // Wait for repaint
     await page.waitForTimeout(500);
 
-    const accessibilityScanResults = await new AxeBuilder({ page })
+    const accessibilityScanResults = await new AxeBuilder({ page: page as any })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
       .analyze();
 
@@ -34,7 +34,7 @@ test.describe('Accessibility - Color Contrast', () => {
     });
     await page.waitForTimeout(500);
 
-    const accessibilityScanResults = await new AxeBuilder({ page })
+    const accessibilityScanResults = await new AxeBuilder({ page: page as any })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
       .analyze();
 
@@ -53,7 +53,7 @@ test.describe('Accessibility - Color Contrast', () => {
       document.documentElement.dataset.theme = 'dark';
     });
 
-    const accessibilityScanResults = await new AxeBuilder({ page })
+    const accessibilityScanResults = await new AxeBuilder({ page: page as any })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
       .analyze();
 
@@ -72,7 +72,7 @@ test.describe('Accessibility - Color Contrast', () => {
     });
     await page.waitForTimeout(500);
 
-    const accessibilityScanResults = await new AxeBuilder({ page })
+    const accessibilityScanResults = await new AxeBuilder({ page: page as any })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
       .analyze();
 
@@ -91,7 +91,7 @@ test.describe('Accessibility - Color Contrast', () => {
     });
     await page.waitForTimeout(500);
 
-    const accessibilityScanResults = await new AxeBuilder({ page })
+    const accessibilityScanResults = await new AxeBuilder({ page: page as any })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
       .analyze();
 
