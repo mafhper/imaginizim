@@ -1,11 +1,5 @@
 export type OutputFormat =
-  | 'original'
-  | 'auto'
-  | 'image/jpeg'
-  | 'image/png'
-  | 'image/webp'
-  | 'image/avif'
-  | 'image/svg+xml';
+  'original' | 'auto' | 'image/jpeg' | 'image/png' | 'image/webp' | 'image/avif' | 'image/svg+xml';
 
 export type OptimizationMode = 'balanced' | 'max-compression' | 'max-speed';
 export type FileStatus = 'queued' | 'processing' | 'done' | 'error';
