@@ -23073,6 +23073,13 @@ const removeLeadingZero = (value) => {
   if (-1 < value && value < 0 && strValue[1] === '0') return strValue[0] + strValue.slice(2);
   return strValue;
 };
+const hasScriptsEventAttrs = [
+  ...attrsGroups.animationEvent,
+  ...attrsGroups.documentEvent,
+  ...attrsGroups.documentElementEvent,
+  ...attrsGroups.globalEvent,
+  ...attrsGroups.graphicalEvent
+];
 const hasScripts = (node) => {
   if (node.name === 'script' && node.children.length !== 0) return true;
   if (node.name === 'a') {
@@ -23080,20 +23087,14 @@ const hasScripts = (node) => {
       ([attrKey, attrValue]) =>
         (attrKey === 'href' || attrKey.endsWith(':href')) &&
         attrValue != null &&
-        attrValue.trimStart().startsWith('javascript:')
+        attrValue.trimStart().toLowerCase().startsWith('javascript:')
     );
     if (hasJsLinks) return true;
   }
-  const eventAttrs = [
-    ...attrsGroups.animationEvent,
-    ...attrsGroups.documentEvent,
-    ...attrsGroups.documentElementEvent,
-    ...attrsGroups.globalEvent,
-    ...attrsGroups.graphicalEvent
-  ];
-  return eventAttrs.some((attr) => node.attributes[attr] != null);
+  return hasScriptsEventAttrs.some((attr) => node.attributes[attr] != null);
 };
 const includesUrlReference = (body) => new RegExp(regReferencesUrl).test(body);
+const includesCssVarReference = (body) => /var\s*\(\s*--/.test(body);
 const findReferences = (attribute, value) => {
   const results = [];
   if (referencesProps.has(attribute)) {
@@ -23405,8 +23406,8 @@ const fn$E = (_root, params) => {
     element: {
       enter: (node) => {
         if (node.attributes.viewBox != null) {
-          const nums = node.attributes.viewBox.trim().split(/(?:\s,?|,)\s*/g);
-          node.attributes.viewBox = nums
+          const numbers = node.attributes.viewBox.trim().split(/(?:\s,?|,)\s*/g);
+          node.attributes.viewBox = numbers
             .map((value) => {
               const num = Number(value);
               return Number.isNaN(num) ? value : Number(num.toFixed(floatPrecision));
@@ -23491,17 +23492,18 @@ const fn$D = (_root, params) => {
             if (rgb2hex) {
               const match = val.match(regRGB);
               if (match != null) {
-                const nums = match.slice(1, 4).map((m) => {
+                const numbers = match.slice(1, 4).map((m) => {
                   let n;
                   n = m.indexOf('%') > -1 ? Math.round(parseFloat(m) * 2.55) : Number(m);
                   return Math.max(0, Math.min(n, 255));
                 });
-                val = convertRgbToHex(nums);
+                val = convertRgbToHex(numbers);
               }
             }
-            convertCase &&
-              !includesUrlReference(val) &&
-              val !== 'currentColor' &&
+            !convertCase ||
+              includesUrlReference(val) ||
+              includesCssVarReference(val) ||
+              val === 'currentColor' ||
               (convertCase === 'lower'
                 ? (val = val.toLowerCase())
                 : convertCase === 'upper' && (val = val.toUpperCase()));
@@ -23616,8 +23618,9 @@ const fn$C = (root, params) => {
             node.attributes.id == null &&
             attributesDefaults &&
             attributesDefaults.get(name) === value &&
-            computedParentStyle?.[name] == null &&
-            delete node.attributes[name];
+            (computedParentStyle?.[name] != null ||
+              stylesheet.rules.some((rule) => includesAttrSelector(rule.selector, name)) ||
+              delete node.attributes[name]);
           if (uselessOverrides && node.attributes.id == null) {
             const style = computedParentStyle?.[name];
             presentationNonInheritableGroupAttrs.has(name) === false &&
@@ -23937,9 +23940,7 @@ const parsePathData = (string) => {
     let number = null;
     if (command === 'A' || command === 'a') {
       const position = args.length;
-      (position !== 0 && position !== 1) ||
-        (c !== '+' && c !== '-' && ([newCursor, number] = readNumber(string, i)));
-      (position !== 2 && position !== 5 && position !== 6) ||
+      (position !== 0 && position !== 1 && position !== 2 && position !== 5 && position !== 6) ||
         ([newCursor, number] = readNumber(string, i));
       if (position === 3 || position === 4) {
         c === '0' && (number = 0);
@@ -23952,6 +23953,10 @@ const parsePathData = (string) => {
     hadComma = false;
     i = newCursor;
     if (args.length === argsCount) {
+      if (command === 'A' || command === 'a') {
+        args[0] = Math.abs(args[0]);
+        args[1] = Math.abs(args[1]);
+      }
       pathData.push({ command: command, args: args });
       command === 'M' && (command = 'L');
       command === 'm' && (command = 'l');
@@ -24100,27 +24105,6 @@ const fn$y = (root, params) => {
             }
             refs.push({ node: node, parentNode: parentNode });
           }
-        const computedStyle = computeStyle(stylesheet, node);
-        if (
-          isHidden &&
-          computedStyle.visibility &&
-          computedStyle.visibility.type === 'static' &&
-          computedStyle.visibility.value === 'hidden' &&
-          querySelector(node, '[visibility=visible]') == null
-        ) {
-          removeElement(node, parentNode);
-          return;
-        }
-        if (
-          displayNone &&
-          computedStyle.display &&
-          computedStyle.display.type === 'static' &&
-          computedStyle.display.value === 'none' &&
-          node.name !== 'marker'
-        ) {
-          removeElement(node, parentNode);
-          return;
-        }
         if (
           circleR0 &&
           node.name === 'circle' &&
@@ -24183,6 +24167,35 @@ const fn$y = (root, params) => {
           removeElement(node, parentNode);
           return;
         }
+        if (polylineEmptyPoints && node.name === 'polyline' && node.attributes.points == null) {
+          removeElement(node, parentNode);
+          return;
+        }
+        if (polygonEmptyPoints && node.name === 'polygon' && node.attributes.points == null) {
+          removeElement(node, parentNode);
+          return;
+        }
+        const computedStyle = computeStyle(stylesheet, node);
+        if (
+          isHidden &&
+          computedStyle.visibility &&
+          computedStyle.visibility.type === 'static' &&
+          computedStyle.visibility.value === 'hidden' &&
+          querySelector(node, '[visibility=visible]') == null
+        ) {
+          removeElement(node, parentNode);
+          return;
+        }
+        if (
+          displayNone &&
+          computedStyle.display &&
+          computedStyle.display.type === 'static' &&
+          computedStyle.display.value === 'none' &&
+          node.name !== 'marker'
+        ) {
+          removeElement(node, parentNode);
+          return;
+        }
         if (pathEmptyD && node.name === 'path') {
           if (node.attributes.d == null) {
             removeElement(node, parentNode);
@@ -24201,14 +24214,6 @@ const fn$y = (root, params) => {
             removeElement(node, parentNode);
             return;
           }
-        }
-        if (polylineEmptyPoints && node.name === 'polyline' && node.attributes.points == null) {
-          removeElement(node, parentNode);
-          return;
-        }
-        if (polygonEmptyPoints && node.name === 'polygon' && node.attributes.points == null) {
-          removeElement(node, parentNode);
-          return;
         }
         for (const [name, value] of Object.entries(node.attributes)) {
           const ids = findReferences(name, value);
@@ -25662,13 +25667,16 @@ const fn$r = (root, params) => {
             computedStyle['stroke-linecap'] &&
             (computedStyle['stroke-linecap'].type === 'dynamic' ||
               computedStyle['stroke-linecap'].value !== 'butt');
-          const maybeHasStrokeAndLinecap = maybeHasStroke && maybeHasLinecap;
           const isSafeToUseZ =
             !maybeHasStroke ||
             (computedStyle['stroke-linecap']?.type === 'static' &&
               computedStyle['stroke-linecap'].value === 'round' &&
               computedStyle['stroke-linejoin']?.type === 'static' &&
               computedStyle['stroke-linejoin'].value === 'round');
+          const isSafeToRemove = (isFirstDraw, safeIfNotFirstDraw) => {
+            if (!maybeHasStroke) return true;
+            return isFirstDraw ? !maybeHasLinecap : safeIfNotFirstDraw;
+          };
           let data = path2js(node);
           if (data.length) {
             const includesVertices = data.some(
@@ -25677,7 +25685,7 @@ const fn$r = (root, params) => {
             convertToRelative(data);
             data = filters(data, newParams, {
               isSafeToUseZ: isSafeToUseZ,
-              maybeHasStrokeAndLinecap: maybeHasStrokeAndLinecap,
+              isSafeToRemove: isSafeToRemove,
               hasMarkerMid: hasMarkerMid
             });
             utilizeAbsolute && (data = convertToMixed(data, newParams));
@@ -25707,8 +25715,7 @@ const convertToRelative = (pathData) => {
       cursor[1] += args[1];
       start[0] = cursor[0];
       start[1] = cursor[1];
-    }
-    if (command === 'M') {
+    } else if (command === 'M') {
       i !== 0 && (command = 'm');
       args[0] -= cursor[0];
       args[1] -= cursor[1];
@@ -25716,35 +25723,29 @@ const convertToRelative = (pathData) => {
       cursor[1] += args[1];
       start[0] = cursor[0];
       start[1] = cursor[1];
-    }
-    if (command === 'l') {
+    } else if (command === 'l') {
       cursor[0] += args[0];
       cursor[1] += args[1];
-    }
-    if (command === 'L') {
+    } else if (command === 'L') {
       command = 'l';
       args[0] -= cursor[0];
       args[1] -= cursor[1];
       cursor[0] += args[0];
       cursor[1] += args[1];
-    }
-    command === 'h' && (cursor[0] += args[0]);
-    if (command === 'H') {
+    } else if (command === 'h') cursor[0] += args[0];
+    else if (command === 'H') {
       command = 'h';
       args[0] -= cursor[0];
       cursor[0] += args[0];
-    }
-    command === 'v' && (cursor[1] += args[0]);
-    if (command === 'V') {
+    } else if (command === 'v') cursor[1] += args[0];
+    else if (command === 'V') {
       command = 'v';
       args[0] -= cursor[1];
       cursor[1] += args[0];
-    }
-    if (command === 'c') {
+    } else if (command === 'c') {
       cursor[0] += args[4];
       cursor[1] += args[5];
-    }
-    if (command === 'C') {
+    } else if (command === 'C') {
       command = 'c';
       args[0] -= cursor[0];
       args[1] -= cursor[1];
@@ -25754,12 +25755,10 @@ const convertToRelative = (pathData) => {
       args[5] -= cursor[1];
       cursor[0] += args[4];
       cursor[1] += args[5];
-    }
-    if (command === 's') {
+    } else if (command === 's') {
       cursor[0] += args[2];
       cursor[1] += args[3];
-    }
-    if (command === 'S') {
+    } else if (command === 'S') {
       command = 's';
       args[0] -= cursor[0];
       args[1] -= cursor[1];
@@ -25767,12 +25766,10 @@ const convertToRelative = (pathData) => {
       args[3] -= cursor[1];
       cursor[0] += args[2];
       cursor[1] += args[3];
-    }
-    if (command === 'q') {
+    } else if (command === 'q') {
       cursor[0] += args[2];
       cursor[1] += args[3];
-    }
-    if (command === 'Q') {
+    } else if (command === 'Q') {
       command = 'q';
       args[0] -= cursor[0];
       args[1] -= cursor[1];
@@ -25780,30 +25777,25 @@ const convertToRelative = (pathData) => {
       args[3] -= cursor[1];
       cursor[0] += args[2];
       cursor[1] += args[3];
-    }
-    if (command === 't') {
+    } else if (command === 't') {
       cursor[0] += args[0];
       cursor[1] += args[1];
-    }
-    if (command === 'T') {
+    } else if (command === 'T') {
       command = 't';
       args[0] -= cursor[0];
       args[1] -= cursor[1];
       cursor[0] += args[0];
       cursor[1] += args[1];
-    }
-    if (command === 'a') {
+    } else if (command === 'a') {
       cursor[0] += args[5];
       cursor[1] += args[6];
-    }
-    if (command === 'A') {
+    } else if (command === 'A') {
       command = 'a';
       args[5] -= cursor[0];
       args[6] -= cursor[1];
       cursor[0] += args[5];
       cursor[1] += args[6];
-    }
-    if (command === 'Z' || command === 'z') {
+    } else if (command === 'Z' || command === 'z') {
       cursor[0] = start[0];
       cursor[1] = start[1];
     }
@@ -25818,11 +25810,7 @@ const convertToRelative = (pathData) => {
 function filters(
   path,
   params,
-  {
-    isSafeToUseZ: isSafeToUseZ,
-    maybeHasStrokeAndLinecap: maybeHasStrokeAndLinecap,
-    hasMarkerMid: hasMarkerMid
-  }
+  { isSafeToUseZ: isSafeToUseZ, isSafeToRemove: isSafeToRemove, hasMarkerMid: hasMarkerMid }
 ) {
   const stringify = data2Path.bind(null, params);
   const relSubpoint = [0, 0];
@@ -25998,11 +25986,18 @@ function filters(
           next && next.command == 's' && makeLonghand(next, data);
           command = 'l';
           data = data.slice(-2);
-        } else if (command === 'q' && isCurveStraightLine(data)) {
-          next && next.command == 't' && makeLonghand(next, data);
-          command = 'l';
-          data = data.slice(-2);
-        } else if (command === 't' && prev.command !== 'q' && prev.command !== 't') {
+        } else if (
+          (command === 'q' && isCurveStraightLine(data)) ||
+          (command === 't' && prev.command !== 'q' && prev.command !== 't')
+        ) {
+          command == 'q' && next && next.command == 't' && makeLonghand(next, data);
+          if (command == 't' && next && next.command == 't') {
+            next.command = 'q';
+            next.args.unshift(
+              2 * item.coords[0] - item.base[0] - item.coords[0],
+              2 * item.coords[1] - item.base[1] - item.coords[1]
+            );
+          }
           command = 'l';
           data = data.slice(-2);
         } else if (
@@ -26098,7 +26093,10 @@ function filters(
               data = data.slice(2);
             }
           }
-      if (params.removeUseless && !maybeHasStrokeAndLinecap) {
+      if (
+        params.removeUseless &&
+        isSafeToRemove(prev.command == 'm' || prev.command == 'M', true)
+      ) {
         if (
           (command === 'l' ||
             command === 'h' ||
@@ -26139,7 +26137,7 @@ function filters(
     if (
       (command === 'Z' || command === 'z') &&
       params.removeUseless &&
-      isSafeToUseZ &&
+      isSafeToRemove(prev.command == 'm' || prev.command == 'M', isSafeToUseZ) &&
       Math.abs(item.base[0] - item.coords[0]) < error / 10 &&
       Math.abs(item.base[1] - item.coords[1]) < error / 10
     )
@@ -26515,8 +26513,24 @@ const name$o = 'removeEmptyContainers';
 const description$o = 'removes empty container elements';
 const fn$o = (root) => {
   const stylesheet = collectStylesheet(root);
+  const removedIds = new Set();
+  const usesById = new Map();
   return {
     element: {
+      enter: (node, parentNode) => {
+        if (node.name === 'use')
+          for (const [name, value] of Object.entries(node.attributes)) {
+            const ids = findReferences(name, value);
+            for (const id of ids) {
+              let references = usesById.get(id);
+              if (references === void 0) {
+                references = [];
+                usesById.set(id, references);
+              }
+              references.push({ node: node, parent: parentNode });
+            }
+          }
+      },
       exit: (node, parentNode) => {
         if (
           node.name === 'svg' ||
@@ -26533,6 +26547,15 @@ const fn$o = (root) => {
         )
           return;
         detachNodeFromParent(node, parentNode);
+        node.attributes.id && removedIds.add(node.attributes.id);
+      }
+    },
+    root: {
+      exit: () => {
+        for (const id of removedIds) {
+          const uses = usesById.get(id);
+          if (uses) for (const use of uses) detachNodeFromParent(use.node, use.parent);
+        }
       }
     }
   };
@@ -26561,7 +26584,7 @@ const fn$n = (root, params) => {
     element: {
       enter: (node) => {
         if (node.children.length <= 1) return;
-        const elementsToRemove = [];
+        const elementsToRemove = new Set();
         let prevChild = node.children[0];
         let prevPathData = null;
         const updatePreviousPath = (child, pathData) => {
@@ -26631,7 +26654,7 @@ const fn$n = (root, params) => {
           prevPathData = prevPathData ?? path2js(prevChild);
           if (force || !intersects(prevPathData, currentPathData)) {
             prevPathData.push(...currentPathData);
-            elementsToRemove.push(child);
+            elementsToRemove.add(child);
             continue;
           }
           hasPrevPath && updatePreviousPath(prevChild, prevPathData);
@@ -26639,7 +26662,7 @@ const fn$n = (root, params) => {
           prevPathData = null;
         }
         prevPathData && prevChild.type === 'element' && updatePreviousPath(prevChild, prevPathData);
-        node.children = node.children.filter((child) => !elementsToRemove.includes(child));
+        node.children = node.children.filter((child) => !elementsToRemove.has(child));
       }
     }
   };
@@ -27252,7 +27275,13 @@ var prefixIds = Object.freeze({
 });
 const name$c = 'removeAttributesBySelector';
 const description$c = 'removes attributes of elements that match a css selector';
+const ENOATTRS$1 =
+  'Warning: The plugin "removeAttributesBySelector" is missing parameters.\nIt should have a list of "selectors", or one "selector" and one "attributes".\nWithout either, the plugin is a noop.';
 const fn$c = (root, params) => {
+  if (!Array.isArray(params.selectors) && (!params.selector || !params.attributes)) {
+    console.warn(ENOATTRS$1);
+    return null;
+  }
   const selectors = Array.isArray(params.selectors) ? params.selectors : [params];
   for (const { selector: selector, attributes: attributes } of selectors) {
     const nodes = querySelectorAll(root, selector);
@@ -27350,7 +27379,7 @@ var removeDimensions = Object.freeze({
   name: name$a
 });
 const name$9 = 'removeElementsByAttr';
-const description$9 = 'removes arbitrary elements by ID or className (disabled by default)';
+const description$9 = 'removes arbitrary elements by ID or className';
 const fn$9 = (root, params) => {
   const ids = params.id == null ? [] : Array.isArray(params.id) ? params.id : [params.id];
   const classes =
@@ -27381,8 +27410,7 @@ var removeElementsByAttr = Object.freeze({
   name: name$9
 });
 const name$8 = 'removeOffCanvasPaths';
-const description$8 =
-  'removes elements that are drawn outside of the viewBox (disabled by default)';
+const description$8 = 'removes elements that are drawn outside of the viewBox';
 const fn$8 = () => {
   let viewBoxData = null;
   return {
@@ -27450,7 +27478,7 @@ var removeOffCanvasPaths = Object.freeze({
   name: name$8
 });
 const name$7 = 'removeRasterImages';
-const description$7 = 'removes raster images (disabled by default)';
+const description$7 = 'removes raster images';
 const fn$7 = () => ({
   element: {
     enter: (node, parentNode) => {
@@ -27468,7 +27496,7 @@ var removeRasterImages = Object.freeze({
   name: name$7
 });
 const name$6 = 'removeScripts';
-const description$6 = 'removes scripts (disabled by default)';
+const description$6 = 'removes scripts';
 const eventAttrs = [
   ...attrsGroups.animationEvent,
   ...attrsGroups.documentEvent,
@@ -27476,31 +27504,58 @@ const eventAttrs = [
   ...attrsGroups.globalEvent,
   ...attrsGroups.graphicalEvent
 ];
-const fn$6 = () => ({
-  element: {
-    enter: (node, parentNode) => {
-      if (node.name === 'script') {
-        detachNodeFromParent(node, parentNode);
-        return;
-      }
-      for (const attr of eventAttrs) node.attributes[attr] != null && delete node.attributes[attr];
-    },
-    exit: (node, parentNode) => {
-      if (node.name !== 'a') return;
-      for (const attr of Object.keys(node.attributes))
-        if (attr === 'href' || attr.endsWith(':href')) {
-          if (
-            node.attributes[attr] == null ||
-            !node.attributes[attr].trimStart().startsWith('javascript:')
-          )
-            continue;
-          const index = parentNode.children.indexOf(node);
-          const usefulChildren = node.children.filter((child) => child.type !== 'text');
-          parentNode.children.splice(index, 1, ...usefulChildren);
-        }
+const SCRIPT_NAMESPACES = ['http://www.w3.org/2000/svg', 'http://www.w3.org/1999/xhtml'];
+function isNamespaceAwareElem(elem, targetElem, prefixes, targetNamespaces) {
+  if (elem === targetElem) return true;
+  if (elem.includes(':')) {
+    const [prefix, effectiveTag] = elem.split(':', 2);
+    if (targetElem === effectiveTag) {
+      const namespaces = prefixes.get(prefix);
+      const namespace = namespaces[namespaces.length - 1];
+      return targetNamespaces.includes(namespace);
     }
   }
-});
+  return false;
+}
+const fn$6 = () => {
+  const prefixes = new Map();
+  return {
+    element: {
+      enter: (node, parentNode) => {
+        for (const [k, v] of Object.entries(node.attributes)) {
+          if (!k.startsWith('xmlns:')) continue;
+          const prefix = k.slice(6);
+          prefixes.has(prefix) ? prefixes.get(prefix).push(v) : prefixes.set(prefix, [v]);
+        }
+        if (isNamespaceAwareElem(node.name, 'script', prefixes, SCRIPT_NAMESPACES)) {
+          detachNodeFromParent(node, parentNode);
+          return;
+        }
+        for (const attr of eventAttrs)
+          node.attributes[attr] != null && delete node.attributes[attr];
+      },
+      exit: (node, parentNode) => {
+        for (const k of Object.keys(node.attributes)) {
+          if (!k.startsWith('xmlns:')) continue;
+          const prefix = k.slice(6);
+          prefixes.get(prefix).pop();
+        }
+        if (node.name !== 'a') return;
+        for (const attr of Object.keys(node.attributes))
+          if (attr === 'href' || attr.endsWith(':href')) {
+            if (
+              node.attributes[attr] == null ||
+              !node.attributes[attr].trimStart().toLowerCase().startsWith('javascript:')
+            )
+              continue;
+            const index = parentNode.children.indexOf(node);
+            const usefulChildren = node.children.filter((child) => child.type !== 'text');
+            parentNode.children.splice(index, 1, ...usefulChildren);
+          }
+      }
+    }
+  };
+};
 var removeScripts = Object.freeze({
   __proto__: null,
   description: description$6,
@@ -27508,7 +27563,7 @@ var removeScripts = Object.freeze({
   name: name$6
 });
 const name$5 = 'removeStyleElement';
-const description$5 = 'removes <style> element (disabled by default)';
+const description$5 = 'removes <style> element';
 const fn$5 = () => ({
   element: {
     enter: (node, parentNode) => {
@@ -27550,11 +27605,11 @@ const fn$3 = () => ({
         node.attributes.height != null
       ) {
         if (node.name === 'svg' && parentNode.type !== 'root') return;
-        const nums = node.attributes.viewBox.split(/[ ,]+/g);
-        nums[0] === '0' &&
-          nums[1] === '0' &&
-          node.attributes.width.replace(/px$/, '') === nums[2] &&
-          node.attributes.height.replace(/px$/, '') === nums[3] &&
+        const numbers = node.attributes.viewBox.split(/[ ,]+/g);
+        numbers[0] === '0' &&
+          numbers[1] === '0' &&
+          node.attributes.width.replace(/px$/, '') === numbers[2] &&
+          node.attributes.height.replace(/px$/, '') === numbers[3] &&
           delete node.attributes.viewBox;
       }
     }
@@ -27681,7 +27736,7 @@ var removeXlink = Object.freeze({
   name: name$2
 });
 const name$1 = 'removeXMLNS';
-const description$1 = 'removes xmlns attribute (for inline svg, disabled by default)';
+const description$1 = 'removes xmlns attribute (for inline svg)';
 const fn$1 = () => ({
   element: {
     enter: (node) => {
@@ -27899,6 +27954,9 @@ var sax = {};
       parser.opt = opt || {};
       parser.opt.lowercase = parser.opt.lowercase || parser.opt.lowercasetags;
       parser.looseCase = parser.opt.lowercase ? 'toLowerCase' : 'toUpperCase';
+      parser.opt.maxEntityCount = parser.opt.maxEntityCount || 512;
+      parser.opt.maxEntityDepth = parser.opt.maxEntityDepth || 4;
+      parser.entityCount = parser.entityDepth = 0;
       parser.tags = [];
       parser.closed = parser.closedRoot = parser.sawRoot = false;
       parser.tag = parser.error = null;
@@ -28540,7 +28598,7 @@ var sax = {};
           numStr = num.toString(10);
         }
       entity = entity.replace(/^0+/, '');
-      if (isNaN(num) || numStr.toLowerCase() !== entity) {
+      if (isNaN(num) || numStr.toLowerCase() !== entity || num < 0 || num > 0x10ffff) {
         strictFail(parser, 'Invalid character entity');
         return '&' + parser.entity + ';';
       }
@@ -28753,7 +28811,19 @@ var sax = {};
                 : (parser.state = S.TEXT);
             continue;
           case S.CDATA:
-            c === ']' ? (parser.state = S.CDATA_ENDING) : (parser.cdata += c);
+            var starti = i - 1;
+            while (c && c !== ']') {
+              c = charAt(chunk, i++);
+              if (c && parser.trackPosition) {
+                parser.position++;
+                if (c === '\n') {
+                  parser.line++;
+                  parser.column = 0;
+                } else parser.column++;
+              }
+            }
+            parser.cdata += chunk.substring(starti, i - 1);
+            c === ']' && (parser.state = S.CDATA_ENDING);
             continue;
           case S.CDATA_ENDING:
             if (c === ']') parser.state = S.CDATA_ENDING_2;
@@ -28906,7 +28976,7 @@ var sax = {};
               if (c === '>') closeTag(parser);
               else if (isMatch(nameBody, c)) parser.tagName += c;
               else if (parser.script) {
-                parser.script += '</' + parser.tagName;
+                parser.script += '</' + parser.tagName + c;
                 parser.tagName = '';
                 parser.state = S.SCRIPT;
               } else {
@@ -28952,9 +29022,14 @@ var sax = {};
                 parser.opt.unparsedEntities &&
                 !Object.values(sax.XML_ENTITIES).includes(parsedEntity)
               ) {
+                (parser.entityCount += 1) > parser.opt.maxEntityCount &&
+                  error(parser, 'Parsed entity count exceeds max entity count');
+                (parser.entityDepth += 1) > parser.opt.maxEntityDepth &&
+                  error(parser, 'Parsed entity depth exceeds max entity depth');
                 parser.entity = '';
                 parser.state = returnState;
                 parser.write(parsedEntity);
+                parser.entityDepth -= 1;
               } else {
                 parser[buffer] += parsedEntity;
                 parser.entity = '';
@@ -29305,7 +29380,7 @@ const stringifyText = (node, config, state) =>
   config.textStart +
   node.value.replace(config.regEntities, config.encodeEntity) +
   (state.textContext ? '' : config.textEnd);
-const VERSION = '4.0.0';
+const VERSION = '4.0.2';
 const pluginsMap = new Map();
 for (const plugin of builtinPlugins) pluginsMap.set(plugin.name, plugin);
 function getPlugin(name) {

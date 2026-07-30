@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router';
 import { currentLang, subscribeLanguageChange, t } from '../../i18n';
 import { cn } from '../utils/ui';
 import { BrandMark } from './BrandMark';

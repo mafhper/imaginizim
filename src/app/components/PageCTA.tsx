@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { ArrowRightIcon } from './icons/AppIcons';
 import { Button } from './ui/Button';
 
