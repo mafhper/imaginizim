@@ -24884,7 +24884,7 @@ function gatherPoints(pathData) {
       case 'A':
         if (basePoint != null) {
           const curves = a2c.apply(0, basePoint.concat(data));
-          for (var cData; (cData = curves.splice(0, 6).map(toAbsolute)).length; ) {
+          for (var cData; (cData = curves.splice(0, 6).map(toAbsolute)).length;) {
             basePoint != null &&
               addPoint(subPath, [0.5 * (basePoint[0] + cData[0]), 0.5 * (basePoint[1] + cData[1])]);
             addPoint(subPath, [0.5 * (cData[0] + cData[2]), 0.5 * (cData[1] + cData[3])]);
@@ -24920,7 +24920,7 @@ function convexHull(points) {
   const upper = [];
   let maxY = points.list.length - 1;
   let top = 0;
-  for (let i = points.list.length; i--; ) {
+  for (let i = points.list.length; i--;) {
     while (
       upper.length >= 2 &&
       cross(upper[upper.length - 2], upper[upper.length - 1], points.list[i]) <= 0
@@ -25324,7 +25324,7 @@ const transformRound = (data, params) =>
     : round$1(data);
 const round$1 = (data) => data.map(Math.round);
 const smartRound = (precision, data) => {
-  for (let i = data.length, tolerance = +Math.pow(0.1, precision).toFixed(precision); i--; )
+  for (let i = data.length, tolerance = +Math.pow(0.1, precision).toFixed(precision); i--;)
     if (toFixed(data[i], precision) !== data[i]) {
       const rounded = +data[i].toFixed(precision - 1);
       data[i] =
@@ -25871,10 +25871,7 @@ function filters(
           angle > Math.PI && (arc.args[3] = 1);
           hasPrev = 1;
         }
-        for (
-          var j = index;
-          (next = path[++j]) && (next.command === 'c' || next.command === 's');
-        ) {
+        for (var j = index; (next = path[++j]) && (next.command === 'c' || next.command === 's');) {
           let nextData = next.args;
           if (next.command == 's') {
             nextLonghand = makeLonghand(
@@ -25949,7 +25946,7 @@ function filters(
           command === 's' ||
           command === 'c'
         )
-          for (let i = data.length; i--; ) data[i] += item.base[i % 2] - relSubpoint[i % 2];
+          for (let i = data.length; i--;) data[i] += item.base[i % 2] - relSubpoint[i % 2];
         else if (command == 'h') data[0] += item.base[0] - relSubpoint[0];
         else if (command == 'v') data[0] += item.base[1] - relSubpoint[1];
         else if (command == 'a') {
@@ -26175,7 +26172,7 @@ function convertToMixed(path, params) {
       command === 's' ||
       command === 'c'
     )
-      for (let i = adata.length; i--; ) adata[i] += item.base[i % 2];
+      for (let i = adata.length; i--;) adata[i] += item.base[i % 2];
     else if (command == 'h') adata[0] += item.base[0];
     else if (command == 'v') adata[0] += item.base[1];
     else if (command == 'a') {
@@ -26233,7 +26230,7 @@ function getIntersection(coords) {
 }
 function strongRound(data) {
   const precisionNum = precision || 0;
-  for (let i = data.length; i-- > 0; ) {
+  for (let i = data.length; i-- > 0;) {
     const fixed = toFixed(data[i], precisionNum);
     if (fixed !== data[i]) {
       const rounded = toFixed(data[i], precisionNum - 1);
@@ -26243,7 +26240,7 @@ function strongRound(data) {
   return data;
 }
 function round(data) {
-  for (let i = data.length; i-- > 0; ) data[i] = Math.round(data[i]);
+  for (let i = data.length; i-- > 0;) data[i] = Math.round(data[i]);
   return data;
 }
 function isCurveStraightLine(data) {
@@ -27114,7 +27111,7 @@ const fn$e = (_root, params) => {
             match[0] == '/' ? '' : match[0] == '\\' && /[-g-z]/i.test(match[1]) ? match[1] : match
           );
           regDeclarationBlock.lastIndex = 0;
-          for (var rule; (rule = regDeclarationBlock.exec(styleValue)); )
+          for (var rule; (rule = regDeclarationBlock.exec(styleValue));)
             (keepImportant && rule[3]) || styles.push([rule[1], rule[2]]);
           if (styles.length) {
             styles = styles.filter(function (style) {
