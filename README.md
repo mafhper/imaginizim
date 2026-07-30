@@ -19,7 +19,7 @@ Imaginizim foi projetado para processar arquivos localmente, de forma rápida, c
 
 - `React 19`
 - `TypeScript`
-- `Vite 7`
+- `Vite 8`
 - `Tailwind CSS`
 - `React Router`
 - `i18next`
