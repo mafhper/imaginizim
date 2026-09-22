@@ -32,7 +32,16 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Verify npm registry signatures
-        run: npm audit signatures
+        run: |
+          for attempt in 1 2 3; do
+            if npm audit signatures --cache "$RUNNER_TEMP/npm-signatures-cache-$attempt"; then
+              exit 0
+            fi
+            echo "::warning::npm audit signatures failed (attempt $attempt/3); retrying with a fresh cache"
+            sleep $((attempt * 10))
+          done
+          echo "::error::npm audit signatures failed after 3 attempts"
+          exit 1
 
       - name: Audit known vulnerabilities
         run: npm audit --audit-level=high
