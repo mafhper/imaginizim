@@ -58,7 +58,5 @@ export async function findSafePort(preferredPort, host, attempts = 20) {
     }
   }
 
-  throw new Error(
-    `Unable to find a usable port on ${host} after ${attempts} attempts.`
-  );
+  throw new Error(`Unable to find a usable port on ${host} after ${attempts} attempts.`);
 }
