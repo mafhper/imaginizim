@@ -7,6 +7,7 @@ import { createRequire } from 'node:module';
 import lighthouse from 'lighthouse';
 import { launch } from 'chrome-launcher';
 import { chromium } from 'playwright';
+import { findSafePort } from './net-port.mjs';
 
 const require = createRequire(import.meta.url);
 const config = require('../lighthouserc.cjs');
@@ -17,30 +18,6 @@ const runDesktop = modeArg === 'all' || modeArg === 'desktop';
 const DIST_DIR = path.resolve('dist');
 const REPORT_ROOT = path.resolve(config.reportsDir, 'latest');
 const CHROME_PROFILE_ROOT = path.resolve(config.reportsDir, '.chrome-profiles');
-
-async function findFreePort(preferredPort) {
-  const tryListen = (port) =>
-    new Promise((resolve) => {
-      const server = net.createServer();
-      server.once('error', () => resolve(null));
-      server.listen(port, config.host, () => {
-        const address = server.address();
-        server.close(() => resolve(address?.port ?? null));
-      });
-    });
-
-  const preferred = await tryListen(preferredPort);
-  if (preferred) {
-    return preferred;
-  }
-
-  const dynamic = await tryListen(0);
-  if (!dynamic) {
-    throw new Error('Unable to find a free port for Lighthouse server.');
-  }
-
-  return dynamic;
-}
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -185,10 +162,16 @@ async function runRoute(presetName, route, port) {
   safeRemoveDir(profileDir);
   ensureDir(profileDir);
 
+  // chrome-launcher picks a random port when none is given, and it does not
+  // filter ports that `fetch` rejects. Passing one explicitly skips its
+  // allocation entirely, which is what makes the run deterministic.
+  const debugPort = await findSafePort(0, config.host);
+
   const chrome = await launch({
     chromePath: chromium.executablePath(),
     chromeFlags: ['--headless=new', '--disable-gpu', '--no-sandbox'],
-    userDataDir: profileDir
+    userDataDir: profileDir,
+    port: debugPort
   });
 
   try {
@@ -232,7 +215,7 @@ async function runRoute(presetName, route, port) {
 async function main() {
   ensureDir(REPORT_ROOT);
   ensureDir(CHROME_PROFILE_ROOT);
-  const port = await findFreePort(config.port);
+  const port = await findSafePort(config.port, config.host);
 
   const server = createServer();
   await new Promise((resolve, reject) => {
