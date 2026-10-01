@@ -49,6 +49,47 @@ describe('queue processing settings', () => {
 
     expect(result.chosenFormat).toBe('image/webp');
   });
+
+  it('resets an unmeasured score to null, not to zero', () => {
+    const settings: RecordSettings = {
+      quality: 0.78,
+      scale: 1,
+      outputFormat: 'auto',
+      optimizationMode: 'balanced'
+    };
+    const record = queueRecord({
+      id: 'png-1',
+      type: 'image/png',
+      settings,
+      chosenFormat: 'image/png'
+    });
+
+    const [result] = applyProcessingSettings([record], ['png-1'], settings, 'Na fila');
+
+    // `0` claims the similarity is zero. The score is not measured until the
+    // worker answers, and that answer can legitimately be "unmeasurable".
+    expect(result.qualityScore).toBeNull();
+  });
+
+  it('clears a stale score when a reprocess is queued', () => {
+    const settings: RecordSettings = {
+      quality: 0.78,
+      scale: 1,
+      outputFormat: 'auto',
+      optimizationMode: 'balanced'
+    };
+    const record = {
+      ...queueRecord({ id: 'png-1', type: 'image/png', settings, chosenFormat: 'image/png' }),
+      status: 'done' as const
+    };
+
+    const [result] = applyProcessingSettings([record], ['png-1'], settings, 'Na fila');
+
+    expect(result.qualityScore).toBeNull();
+    expect(result.blob).toBeNull();
+    expect(result.newSize).toBeNull();
+    expect(result.compressedPreviewUrl).toBeNull();
+  });
 });
 
 function queueRecord({
@@ -71,7 +112,7 @@ function queueRecord({
     originalSize: 5,
     newSize: null,
     chosenFormat,
-    qualityScore: 0,
+    qualityScore: 0.94,
     strategyUsed: 'queued',
     sourceObjectUrl: 'blob:source',
     optimizedObjectUrl: null,

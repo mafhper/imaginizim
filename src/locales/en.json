@@ -29,7 +29,13 @@
     "queue": "Images in queue",
     "queue_hint": "Drag more images or adjust the controls to the side.",
     "density_comfort": "Large",
-    "density_compact": "Small"
+    "density_compact": "Small",
+    "file_count_one": "file",
+    "file_count_other": "files",
+    "done_count": "completed",
+    "loading": "Loading",
+    "loading_title": "Preparing the next area",
+    "loading_desc": "The interface is loading the next block of the product to keep the home page light."
   },
   "engine": {
     "init_title": "Drag your images here",
@@ -53,6 +59,7 @@
     "stage_finalizing": "Ready",
     "status_error": "Error",
     "error_fallback": "Something went wrong. Try another format.",
+    "error_timeout": "Processing took too long. Try WebP or reduce the scale.",
     "format_hint_max_compression": "Tip: WebP and AVIF usually make files much smaller.",
     "origin": "Original",
     "local_badge": "Processed on your computer",
@@ -65,7 +72,15 @@
     "optimize_queue": "Redo all",
     "total_saved": "You saved:",
     "download_all": "Download all (ZIP)",
-    "reset": "Clear all"
+    "reset": "Clear all",
+    "add_files": "Add files",
+    "process_queue": "Process queue",
+    "reprocess_queue": "Reprocess queue",
+    "processing_queue": "Processing queue",
+    "reprocess": "Reprocess",
+    "remove": "Remove",
+    "download_done": "Download completed",
+    "reset_session": "Clear session"
   },
   "how": {
     "kicker": "Simple as that",

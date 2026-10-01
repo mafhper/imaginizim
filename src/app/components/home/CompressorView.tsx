@@ -54,6 +54,7 @@ export function CompressorView(props: CompressorViewProps) {
     scale,
     outputFormat,
     optimizationMode,
+    density,
     doneCount,
     totalSavedBytes,
     hasProcessedOnce,
@@ -64,6 +65,7 @@ export function CompressorView(props: CompressorViewProps) {
     onOpenComparison,
     onDownloadFile,
     onReprocessFile,
+    onSetDensity,
     onSettingsChange,
     onReprocessAll,
     onDownloadAll
@@ -75,13 +77,14 @@ export function CompressorView(props: CompressorViewProps) {
   );
   const savingsPercent = totalOriginal > 0 ? (totalSavedBytes / totalOriginal) * 100 : 0;
   const processingCount = files.filter((file) => file.status === 'processing').length;
+  const isCompact = density === 'compact';
 
   const primaryActionLabel =
     processingCount > 0
-      ? 'Processando fila'
+      ? t('actions.processing_queue')
       : hasProcessedOnce
-        ? 'Reprocessar fila'
-        : 'Processar fila';
+        ? t('actions.reprocess_queue')
+        : t('actions.process_queue');
 
   const handleMoreFiles = (fileList: FileList | null) => {
     if (!fileList) return;
@@ -99,34 +102,76 @@ export function CompressorView(props: CompressorViewProps) {
             </Button>
             <div className="text-sm text-foreground">
               <span className="font-medium">
-                {files.length} {files.length === 1 ? 'arquivo' : 'arquivos'}
+                {files.length}{' '}
+                {files.length === 1 ? t('app.file_count_one') : t('app.file_count_other')}
               </span>
               <span className="text-muted-foreground mx-2">•</span>
-              <span className="text-muted-foreground">{doneCount} concluídos</span>
+              <span className="text-muted-foreground">
+                {doneCount} {t('app.done_count')}
+              </span>
             </div>
           </div>
-          <label className="cursor-pointer">
-            <input
-              id="fileInput"
-              data-testid="file-input"
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={(event) => handleMoreFiles(event.target.files)}
-            />
-            <span>
-              <Button variant="outline" size="sm" className="h-8">
-                <Plus className="h-4 w-4 mr-1.5" /> Adicionar
-              </Button>
-            </span>
-          </label>
+          <div className="flex items-center gap-2">
+            {files.length > 0 ? (
+              <div
+                role="group"
+                aria-label={t('app.queue')}
+                className="rounded-full border border-border/60 bg-muted/20 p-1 text-xs text-muted-foreground"
+              >
+                <button
+                  id="queueDensityComfortBtn"
+                  type="button"
+                  aria-pressed={density === 'comfort'}
+                  onClick={() => onSetDensity('comfort')}
+                  className={cn(
+                    'rounded-full px-3 py-1 transition-colors',
+                    density === 'comfort' && 'bg-secondary text-foreground'
+                  )}
+                >
+                  {t('app.density_comfort')}
+                </button>
+                <button
+                  id="queueDensityCompactBtn"
+                  type="button"
+                  aria-pressed={density === 'compact'}
+                  onClick={() => onSetDensity('compact')}
+                  className={cn(
+                    'rounded-full px-3 py-1 transition-colors',
+                    density === 'compact' && 'bg-secondary text-foreground'
+                  )}
+                >
+                  {t('app.density_compact')}
+                </button>
+              </div>
+            ) : null}
+            <label className="cursor-pointer">
+              <input
+                id="fileInput"
+                data-testid="file-input"
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(event) => handleMoreFiles(event.target.files)}
+              />
+              <span>
+                <Button variant="outline" size="sm" className="h-8">
+                  <Plus className="h-4 w-4 mr-1.5" /> {t('actions.add_files')}
+                </Button>
+              </span>
+            </label>
+          </div>
         </section>
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_320px]">
           {/* Main List Area */}
           <section className="flex flex-col min-h-[600px] glass-panel p-4">
-            <div className="app-scrollbar flex-1 space-y-2 overflow-auto pr-1">
+            <div
+              className={cn(
+                'app-scrollbar flex-1 overflow-auto pr-1',
+                isCompact ? 'space-y-1' : 'space-y-2'
+              )}
+            >
               {files.map((item) => {
                 const savedBytes = Math.max(
                   0,
@@ -139,12 +184,18 @@ export function CompressorView(props: CompressorViewProps) {
                   <article
                     key={item.id}
                     className={cn(
-                      'group rounded-[8px] border border-border bg-card transition-colors p-3 flex gap-4',
+                      'group rounded-[8px] border border-border bg-card transition-colors flex',
+                      isCompact ? 'gap-3 p-2' : 'gap-4 p-3',
                       isSelected && 'border-primary/40 bg-secondary/30'
                     )}
                     onClick={() => onSelectFile(item.id)}
                   >
-                    <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-[6px] border border-border bg-secondary">
+                    <div
+                      className={cn(
+                        'flex-shrink-0 overflow-hidden rounded-[6px] border border-border bg-secondary',
+                        isCompact ? 'h-9 w-9' : 'h-12 w-12'
+                      )}
+                    >
                       <img
                         src={item.compressedPreviewUrl ?? item.previewUrl}
                         alt={item.file.name}
@@ -158,7 +209,12 @@ export function CompressorView(props: CompressorViewProps) {
                           <p className="truncate text-sm font-medium text-foreground">
                             {item.file.name}
                           </p>
-                          <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                          <div
+                            className={cn(
+                              'mt-0.5 flex flex-wrap items-center gap-2 text-muted-foreground',
+                              isCompact && 'hidden'
+                            )}
+                          >
                             <span>{formatBytes(item.originalSize)}</span>
                             {item.newSize ? <span>→ {formatBytes(item.newSize)}</span> : null}
                             {savedBytes > 0 ? (
@@ -171,7 +227,7 @@ export function CompressorView(props: CompressorViewProps) {
                         </div>
                         <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                           <IconButton
-                            label="Comparar"
+                            label={t('preview.open_compare')}
                             disabled={!isDone}
                             onClick={(event) => {
                               event.stopPropagation();
@@ -181,7 +237,7 @@ export function CompressorView(props: CompressorViewProps) {
                             <Eye className="h-3.5 w-3.5" />
                           </IconButton>
                           <IconButton
-                            label="Baixar"
+                            label={t('preview.download')}
                             disabled={!isDone}
                             onClick={(event) => {
                               event.stopPropagation();
@@ -191,7 +247,7 @@ export function CompressorView(props: CompressorViewProps) {
                             <Download className="h-3.5 w-3.5" />
                           </IconButton>
                           <IconButton
-                            label="Reprocessar"
+                            label={t('actions.reprocess')}
                             onClick={(event) => {
                               event.stopPropagation();
                               onReprocessFile(item.id);
@@ -200,7 +256,7 @@ export function CompressorView(props: CompressorViewProps) {
                             <RefreshCcw className="h-3.5 w-3.5" />
                           </IconButton>
                           <IconButton
-                            label="Remover"
+                            label={t('actions.remove')}
                             onClick={(event) => {
                               event.stopPropagation();
                               onRemoveFile(item.id);
@@ -234,13 +290,15 @@ export function CompressorView(props: CompressorViewProps) {
           <aside className="space-y-4">
             <div className="glass-panel p-5 space-y-5">
               <div>
-                <h3 className="font-display text-lg font-medium text-foreground">Parâmetros</h3>
+                <h3 className="font-display text-lg font-medium text-foreground">
+                  {t('engine.params_title')}
+                </h3>
               </div>
 
               <div className="space-y-4">
                 <div>
                   <label className="mb-1.5 flex justify-between text-xs text-muted-foreground">
-                    <span>Qualidade</span>
+                    <span>{t('engine.quality')}</span>
                     <span>{Math.round(quality * 100)}%</span>
                   </label>
                   <input
@@ -255,7 +313,9 @@ export function CompressorView(props: CompressorViewProps) {
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs text-muted-foreground">Escala</label>
+                  <label className="mb-1.5 block text-xs text-muted-foreground">
+                    {t('engine.scale')}
+                  </label>
                   <select
                     value={String(scale)}
                     onChange={(event) => onSettingsChange({ scale: Number(event.target.value) })}
@@ -269,7 +329,9 @@ export function CompressorView(props: CompressorViewProps) {
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs text-muted-foreground">Formato</label>
+                  <label className="mb-1.5 block text-xs text-muted-foreground">
+                    {t('engine.output_format')}
+                  </label>
                   <select
                     value={outputFormat}
                     onChange={(event) =>
@@ -286,7 +348,9 @@ export function CompressorView(props: CompressorViewProps) {
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs text-muted-foreground">Otimização</label>
+                  <label className="mb-1.5 block text-xs text-muted-foreground">
+                    {t('engine.mode')}
+                  </label>
                   <select
                     value={optimizationMode}
                     onChange={(event) =>
@@ -294,9 +358,9 @@ export function CompressorView(props: CompressorViewProps) {
                     }
                     className="field-input h-9 text-xs"
                   >
-                    <option value="balanced">Balanceado</option>
-                    <option value="max-compression">Compressão máxima</option>
-                    <option value="max-speed">Velocidade máxima</option>
+                    <option value="balanced">{t('engine.mode_balanced')}</option>
+                    <option value="max-compression">{t('engine.mode_compression')}</option>
+                    <option value="max-speed">{t('engine.mode_speed')}</option>
                   </select>
                 </div>
               </div>
@@ -328,7 +392,7 @@ export function CompressorView(props: CompressorViewProps) {
                   className="w-full text-sm"
                   onClick={() => void onDownloadAll()}
                 >
-                  <Download className="h-4 w-4 mr-1.5" /> Baixar concluídos ({doneCount})
+                  <Download className="h-4 w-4 mr-1.5" /> {t('actions.download_done')} ({doneCount})
                 </Button>
               )}
 
@@ -338,7 +402,7 @@ export function CompressorView(props: CompressorViewProps) {
                   className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
                   onClick={onBack}
                 >
-                  Limpar sessão
+                  {t('actions.reset_session')}
                 </button>
               </div>
             </div>

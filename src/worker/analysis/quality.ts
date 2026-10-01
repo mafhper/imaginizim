@@ -1,3 +1,5 @@
+import type { QualityScore } from '../types';
+
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
@@ -25,11 +27,19 @@ async function blobToSample(blob: Blob): Promise<Uint8ClampedArray | null> {
   }
 }
 
-export async function estimateQualityScore(original: Blob, candidate: Blob): Promise<number> {
+/**
+ * Estimates similarity between a candidate and its source as `1 - rmse/255`.
+ *
+ * Returns `null` when the comparison cannot be performed — a blob the worker
+ * cannot decode, a missing 2d context, mismatched samples. It used to return a
+ * hardcoded `0.88` instead, and because the `balanced` threshold is `0.87`,
+ * every one of those failures was scored as a *pass*.
+ */
+export async function estimateQualityScore(original: Blob, candidate: Blob): Promise<QualityScore> {
   const [sampleA, sampleB] = await Promise.all([blobToSample(original), blobToSample(candidate)]);
 
   if (!sampleA || !sampleB || sampleA.length !== sampleB.length) {
-    return 0.88;
+    return null;
   }
 
   let mse = 0;
@@ -45,7 +55,7 @@ export async function estimateQualityScore(original: Blob, candidate: Blob): Pro
   }
 
   if (pixels === 0) {
-    return 0.88;
+    return null;
   }
 
   const rmse = Math.sqrt(mse / pixels);

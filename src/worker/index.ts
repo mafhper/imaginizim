@@ -4,7 +4,13 @@ import { compressRaster, convertSvgToRasterBlob } from './codecs/raster';
 import { optimizeSvgBlob } from './codecs/svg';
 import { blobMatchesFormat } from '../export/formats';
 import { buildCandidates, getQualityThreshold } from './selection/strategy';
-import type { ImageProfile, WorkerCompressionRequest, WorkerCompressionResponse } from './types';
+import { chooseCandidate } from './selection/choose';
+import type {
+  ImageProfile,
+  QualityScore,
+  WorkerCompressionRequest,
+  WorkerCompressionResponse
+} from './types';
 
 function createVectorProfile(): ImageProfile {
   return {
@@ -111,7 +117,7 @@ self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
     const evaluated: Array<{
       blob: Blob;
       format: string;
-      qualityScore: number;
+      qualityScore: QualityScore;
       strategyUsed: string;
     }> = [];
     let lastCandidateError: unknown = null;
@@ -210,14 +216,10 @@ self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
       return;
     }
 
-    const viable = evaluated
-      .filter((item) => item.qualityScore >= threshold)
-      .sort((a, b) => a.blob.size - b.blob.size);
-
-    const fallback = evaluated.sort(
-      (a, b) => b.qualityScore - a.qualityScore || a.blob.size - b.blob.size
-    )[0];
-    const selected = viable[0] ?? fallback;
+    const selected = chooseCandidate(evaluated, threshold);
+    if (!selected) {
+      throw new Error('No valid compression candidate was produced.');
+    }
     self.postMessage({
       version: 1,
       id,

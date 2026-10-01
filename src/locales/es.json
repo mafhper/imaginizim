@@ -29,7 +29,13 @@
     "queue": "Imágenes en cola",
     "queue_hint": "Arrastra más imágenes o ajusta los controles laterales.",
     "density_comfort": "Grande",
-    "density_compact": "Pequeña"
+    "density_compact": "Pequeña",
+    "file_count_one": "archivo",
+    "file_count_other": "archivos",
+    "done_count": "completados",
+    "loading": "Cargando",
+    "loading_title": "Preparando la siguiente área",
+    "loading_desc": "La interfaz está cargando el siguiente bloque del producto para mantener ligera la página de inicio."
   },
   "engine": {
     "init_title": "Arrastra tus imágenes aquí",
@@ -53,6 +59,7 @@
     "stage_finalizing": "Listo",
     "status_error": "Error",
     "error_fallback": "Algo salió mal. Intenta con otro formato.",
+    "error_timeout": "El procesamiento tardó demasiado. Prueba WebP o reduce la escala.",
     "format_hint_max_compression": "Consejo: WebP y AVIF suelen dejar los archivos mucho más pequeños.",
     "origin": "Original",
     "local_badge": "Procesado en tu ordenador",
@@ -65,7 +72,15 @@
     "optimize_queue": "Rehacer todo",
     "total_saved": "Has ahorrado:",
     "download_all": "Descargar todas (ZIP)",
-    "reset": "Limpiar todo"
+    "reset": "Limpiar todo",
+    "add_files": "Añadir",
+    "process_queue": "Procesar cola",
+    "reprocess_queue": "Reprocesar cola",
+    "processing_queue": "Procesando cola",
+    "reprocess": "Reprocesar",
+    "remove": "Eliminar",
+    "download_done": "Descargar completados",
+    "reset_session": "Limpiar sesión"
   },
   "how": {
     "kicker": "Tan simple como eso",
