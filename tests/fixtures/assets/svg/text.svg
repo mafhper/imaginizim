@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="64" viewBox="0 0 128 64">
+  <title>live text</title>
+  <!--
+    Text, not paths. Converting it to paths preserves appearance on one machine
+    and changes size, accessibility, editability and responsive behaviour.
+    It has to be an explicit opt-in, never a side effect of optimisation.
+  -->
+  <text x="8" y="40" font-family="sans-serif" font-size="24" fill="#2f6f4f">
+    Imaginizim
+  </text>
+</svg>

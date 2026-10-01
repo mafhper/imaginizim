@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>mixed: vector plus embedded raster</title>
+  <!-- 2 paths, 1 image. Neither half can be optimised without the other. -->
+  <path d="M8 8h48v20H8z" fill="#2f6f4f" />
+  <path d="M8 36h48v20H8z" fill="#8fd4b0" />
+  <image
+    x="24"
+    y="24"
+    width="16"
+    height="16"
+    href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxIiBoZWlnaHQ9IjEiPjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9ImIzYzhkMGMiLz48L3N2Zz4="
+  />
+</svg>

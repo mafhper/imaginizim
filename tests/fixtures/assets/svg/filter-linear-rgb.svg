@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!--
+    Deliberately MISSING color-interpolation-filters="sRGB".
+
+    Without it, SVG filters interpolate in linearRGB and the result visibly
+    differs from what the same maths produces in CSS or canvas. This is the
+    one transformation that is unambiguously safe for a `safe` optimiser to
+    add, because adding it can only make the output match the CSS renderer.
+
+    Contrast with ../../../../src/assets/logo-imaginizim-dark.svg, whose
+    Figma export does carry the attribute.
+  -->
+  <defs>
+    <filter id="f" x="0" y="0" width="100%" height="100%">
+      <feColorMatrix type="saturate" values="0" />
+    </filter>
+  </defs>
+  <rect x="8" y="8" width="48" height="48" fill="#2f6f4f" filter="url(#f)" />
+</svg>
