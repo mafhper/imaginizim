@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 
 test.describe('Accessibility - Color Contrast', () => {
   test('Home Page (Light Mode)', async ({ page }) => {
-    await page.goto('http://127.0.0.1:4321/imaginizim/');
+    await page.goto('http://127.0.0.1:5190/imaginizim/');
     // Force Light Mode
     await page.evaluate(() => {
       document.documentElement.dataset.theme = 'light';
@@ -25,7 +25,7 @@ test.describe('Accessibility - Color Contrast', () => {
   });
 
   test('Home Page (Dark Mode)', async ({ page }) => {
-    await page.goto('http://127.0.0.1:4321/imaginizim/');
+    await page.goto('http://127.0.0.1:5190/imaginizim/');
     // Force Dark Mode
     await page.evaluate(() => {
       document.documentElement.dataset.theme = 'dark';
@@ -45,7 +45,7 @@ test.describe('Accessibility - Color Contrast', () => {
   });
 
   test('Compressor Workspace with Files (Dark Mode)', async ({ page }) => {
-    await page.goto('http://127.0.0.1:4321/imaginizim/');
+    await page.goto('http://127.0.0.1:5190/imaginizim/');
 
     // Inject a mock file into the app state if possible, or just check the empty state surface
     // Since we can't easily trigger the file picker, we'll check the panel surfaces
@@ -64,7 +64,7 @@ test.describe('Accessibility - Color Contrast', () => {
   });
 
   test('About Page (Light Mode)', async ({ page }) => {
-    await page.goto('http://127.0.0.1:4321/imaginizim/#/sobre');
+    await page.goto('http://127.0.0.1:5190/imaginizim/#/sobre');
     await page.evaluate(() => {
       document.documentElement.dataset.theme = 'light';
       document.documentElement.style.colorScheme = 'light';
@@ -83,7 +83,7 @@ test.describe('Accessibility - Color Contrast', () => {
   });
 
   test('About Page (Dark Mode)', async ({ page }) => {
-    await page.goto('http://127.0.0.1:4321/imaginizim/#/sobre');
+    await page.goto('http://127.0.0.1:5190/imaginizim/#/sobre');
     await page.evaluate(() => {
       document.documentElement.dataset.theme = 'dark';
       document.documentElement.style.colorScheme = 'dark';

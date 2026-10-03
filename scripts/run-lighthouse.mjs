@@ -1,13 +1,12 @@
 import fs from 'node:fs';
 import http from 'node:http';
-import net from 'node:net';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { createRequire } from 'node:module';
 import lighthouse from 'lighthouse';
 import { launch } from 'chrome-launcher';
 import { chromium } from 'playwright';
-import { findSafePort } from './net-port.mjs';
+import { findSafePort, formatPortFallback } from './sonda-porta.mjs';
 
 const require = createRequire(import.meta.url);
 const config = require('../lighthouserc.cjs');
@@ -18,6 +17,11 @@ const runDesktop = modeArg === 'all' || modeArg === 'desktop';
 const DIST_DIR = path.resolve('dist');
 const REPORT_ROOT = path.resolve(config.reportsDir, 'latest');
 const CHROME_PROFILE_ROOT = path.resolve(config.reportsDir, '.chrome-profiles');
+
+// Chrome's debugging port. Offset well clear of Vite's dev (5173-5175) and
+// preview (4173-4175) increment ranges, so a running `npm run preview` cannot
+// steal it and a stolen Chrome port cannot steal the page under measurement.
+const CHROME_PORT_BASE = config.port + 200;
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -165,7 +169,10 @@ async function runRoute(presetName, route, port) {
   // chrome-launcher picks a random port when none is given, and it does not
   // filter ports that `fetch` rejects. Passing one explicitly skips its
   // allocation entirely, which is what makes the run deterministic.
-  const debugPort = await findSafePort(0, config.host);
+  const debugPort = await findSafePort(CHROME_PORT_BASE, {
+    host: config.host,
+    rotulo: 'chrome debug'
+  });
 
   const chrome = await launch({
     chromePath: chromium.executablePath(),
@@ -215,7 +222,13 @@ async function runRoute(presetName, route, port) {
 async function main() {
   ensureDir(REPORT_ROOT);
   ensureDir(CHROME_PROFILE_ROOT);
-  const port = await findSafePort(config.port, config.host);
+  const port = await findSafePort(config.port, {
+    host: config.host,
+    rotulo: 'lighthouse server'
+  });
+  if (port !== config.port) {
+    console.warn(formatPortFallback(config.port, port, 'lighthouse server'));
+  }
 
   const server = createServer();
   await new Promise((resolve, reject) => {

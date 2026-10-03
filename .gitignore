@@ -1,52 +1,86 @@
-# Dependencies
-node_modules/
-
-# Build output
-dist/
-output
-
-# Vite cache
-.vite/
-node_modules/.vite/
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Logs
-*.log
-npm-debug.log*
-
-# Environment
-.env
-.env.local
-
-# Private files
-AGENTS.md
-.codex/
+# Workspace privado
 .dev/
 _dev/
-.gemini/
-.claude/
-.qwen/
-.kimi/
-.agents/
-.gemini-clipboard/
-.roo/
-.cursor/
-.windsurf/
-.claude-code/
-GEMINI.md
+AGENTS.md
 CLAUDE.md
+GEMINI.md
 QWEN.md
 KIMI.md
-performance-reports/*
+.codex/
+.agents/
+.claude/
+.claude-code/
+.cursor/
+.gemini/
+.gemini-clipboard/
+.kimi/
+.qwen/
+.roo/
+.windsurf/
 
-# Artifacts
+# Sistema operacional
+desktop.ini
+Thumbs.db
+ehthumbs.db
+.DS_Store
+*.lnk
+
+# Dependencias
+node_modules/
+
+# Build
+dist/
+dist-ssr/
+build/
+coverage/
+.nyc_output/
+*.tsbuildinfo
+*.local
+
+# Temporarios
+*.tmp
+*.temp
+*.bak
+*.orig
+
+# Logs
+logs/
+*.log
+*.out
+*.err
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Ambiente
+.env
+.env.*
+!*.example
+
+# Editores
+.vscode/
+!/.vscode/
+/.vscode/*
+!/.vscode/extensions.json
+.idea/
+.cache/
+*.sw?
+*.sublime-project
+*.sublime-workspace
+output/
+.vite/
 artifacts/
+performance-reports/
+test-results/
+playwright-report/
+
+# Sondas
+# A sonda adotada pela frota vive versionada em scripts/sonda-porta.mjs e NAO
+# entra aqui: vite.config.js e run-lighthouse.mjs dependem dela, e um clone
+# limpo sem o arquivo nao sobe o servidor nem roda o gate.
+# O que fica de fora sao rascunhos e variantes antigas.
+sonda-porta.ts
+/ports.ts
+/ports.mjs
