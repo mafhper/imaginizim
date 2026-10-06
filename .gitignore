@@ -33,6 +33,7 @@ dist/
 dist-ssr/
 build/
 coverage/
+.vitest/
 .nyc_output/
 *.tsbuildinfo
 *.local
