@@ -5,6 +5,8 @@ export interface RecordSettings {
   scale: number;
   outputFormat: OutputFormat;
   optimizationMode: OptimizationMode;
+  /** Byte budget per output; `null`/absent means no budget. */
+  targetBytes?: number | null;
 }
 
 export interface QueueRecord extends ProcessedFileRecord {

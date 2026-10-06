@@ -31,6 +31,12 @@ export interface ProcessedFileRecord {
   chosenFormat: string;
   /** `null` until a score is measured, and forever when it cannot be. */
   qualityScore: QualityScore;
+  /**
+   * `true`/`false` when a byte budget was requested, `null`/absent otherwise.
+   * `false` means the budget could not be met and the artifact is the smallest
+   * the engine could produce.
+   */
+  metTarget?: boolean | null;
   strategyUsed: string;
   sourceObjectUrl: string;
   optimizedObjectUrl: string | null;

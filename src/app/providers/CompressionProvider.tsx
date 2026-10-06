@@ -62,7 +62,8 @@ function defaultSettings(): RecordSettings {
     quality: 0.78,
     scale: 1,
     outputFormat: 'original',
-    optimizationMode: 'balanced'
+    optimizationMode: 'balanced',
+    targetBytes: null
   };
 }
 
@@ -113,6 +114,7 @@ function asProcessedRecord(record: QueueRecord): ProcessedFileRecord {
     newSize: record.newSize,
     chosenFormat: record.chosenFormat,
     qualityScore: record.qualityScore,
+    metTarget: record.metTarget,
     strategyUsed: record.strategyUsed,
     sourceObjectUrl: record.sourceObjectUrl,
     optimizedObjectUrl: record.optimizedObjectUrl
@@ -203,6 +205,8 @@ export function CompressionProvider({ children }: PropsWithChildren) {
           // would silently resurrect the previous record's score.
           qualityScore:
             response.qualityScore === undefined ? record.qualityScore : response.qualityScore,
+          metTarget:
+            response.metTarget === undefined ? (record.metTarget ?? null) : response.metTarget,
           strategyUsed: response.strategyUsed ?? record.strategyUsed,
           optimizedObjectUrl: optimizedUrl,
           compressedPreviewUrl: optimizedUrl,
@@ -295,7 +299,8 @@ export function CompressionProvider({ children }: PropsWithChildren) {
         quality: target.settings.quality,
         scale: target.settings.scale,
         outputFormat: target.settings.outputFormat,
-        mode: target.settings.optimizationMode
+        mode: target.settings.optimizationMode,
+        targetBytes: target.settings.targetBytes ?? null
       });
 
       if (activeTimeoutRef.current) {
@@ -374,6 +379,7 @@ export function CompressionProvider({ children }: PropsWithChildren) {
           chosenFormat:
             baseSettings.outputFormat === 'original' ? file.type : baseSettings.outputFormat,
           qualityScore: null,
+          metTarget: null,
           strategyUsed: 'queued',
           sourceObjectUrl: previewUrl,
           optimizedObjectUrl: null,

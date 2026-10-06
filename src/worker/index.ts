@@ -1,6 +1,10 @@
 import { analyzeRasterProfile } from './analysis/imageProfile';
 import { estimateQualityScore } from './analysis/quality';
-import { compressRaster, convertSvgToRasterBlob } from './codecs/raster';
+import {
+  compressRaster,
+  compressRasterWithinBudget,
+  convertSvgToRasterBlob
+} from './codecs/raster';
 import { optimizeSvgBlob } from './codecs/svg';
 import { blobMatchesFormat } from '../export/formats';
 import { buildCandidates, getQualityThreshold } from './selection/strategy';
@@ -34,6 +38,12 @@ function withHint(profile: ImageProfile, hint?: Partial<ImageProfile>): ImagePro
   };
 }
 
+interface CandidateOutput {
+  blob: Blob;
+  metTarget?: boolean;
+  budgetAttempts?: number;
+}
+
 async function runCandidate(
   file: File,
   requestId: string,
@@ -44,17 +54,34 @@ async function runCandidate(
   scale: number,
   profile: ImageProfile,
   progressBase: number,
-  progressSpan: number
-): Promise<Blob> {
+  progressSpan: number,
+  targetBytes: number | null
+): Promise<CandidateOutput> {
   if (targetFormat === 'image/svg+xml') {
-    return optimizeSvgBlob(file, mode);
+    const blob = await optimizeSvgBlob(file, mode);
+    return { blob };
   }
 
   if (originalType === 'image/svg+xml') {
-    return convertSvgToRasterBlob(file, targetFormat, scale, quality);
+    const blob = await convertSvgToRasterBlob(file, targetFormat, scale, quality);
+    return { blob };
   }
 
-  return compressRaster(file, {
+  if (typeof targetBytes === 'number' && targetBytes > 0) {
+    const budgeted = await compressRasterWithinBudget(file, {
+      targetFormat,
+      scale,
+      quality,
+      targetBytes
+    });
+    return {
+      blob: budgeted.blob,
+      metTarget: budgeted.metTarget,
+      budgetAttempts: budgeted.attempts
+    };
+  }
+
+  const blob = await compressRaster(file, {
     targetFormat,
     scale,
     quality,
@@ -71,13 +98,16 @@ async function runCandidate(
       } satisfies WorkerCompressionResponse);
     }
   });
+  return { blob };
 }
 
 self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
   const payload = event.data;
 
   try {
-    const { file, id, type, quality, scale, outputFormat, mode, profileHint } = payload;
+    const { file, id, type, quality, scale, outputFormat, mode, profileHint, targetBytes } =
+      payload;
+    const budgetRequested = typeof targetBytes === 'number' && targetBytes > 0;
     const isAutomaticSelection = outputFormat === 'auto';
     self.postMessage({
       version: 1,
@@ -119,6 +149,8 @@ self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
       format: string;
       qualityScore: QualityScore;
       strategyUsed: string;
+      metTarget?: boolean;
+      budgetAttempts?: number;
     }> = [];
     let lastCandidateError: unknown = null;
 
@@ -126,7 +158,7 @@ self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
       try {
         const progressBase = 18 + Math.round((index / Math.max(1, candidates.length)) * 58);
         const progressSpan = Math.max(12, Math.round(58 / Math.max(1, candidates.length)));
-        const blob = await runCandidate(
+        const output = await runCandidate(
           file,
           id,
           type,
@@ -136,7 +168,8 @@ self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
           scale,
           profile,
           progressBase,
-          progressSpan
+          progressSpan,
+          targetBytes ?? null
         );
         self.postMessage({
           version: 1,
@@ -146,19 +179,21 @@ self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
           progress: Math.min(94, progressBase + progressSpan),
           stage: isAutomaticSelection ? 'evaluating' : 'encoding-manual'
         } satisfies WorkerCompressionResponse);
-        if (!(await blobMatchesFormat(blob, candidate.format))) {
+        if (!(await blobMatchesFormat(output.blob, candidate.format))) {
           throw new Error(`Encoded blob does not match requested format: ${candidate.format}`);
         }
 
         const qualityScore = isAutomaticSelection
-          ? await estimateQualityScore(originalReference, blob)
+          ? await estimateQualityScore(originalReference, output.blob)
           : 1;
 
         evaluated.push({
-          blob,
+          blob: output.blob,
           format: candidate.format,
           qualityScore,
-          strategyUsed: candidate.strategyUsed
+          strategyUsed: candidate.strategyUsed,
+          metTarget: output.metTarget,
+          budgetAttempts: output.budgetAttempts
         });
       } catch (error) {
         lastCandidateError = error;
@@ -171,7 +206,9 @@ self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
         blob: file,
         format: type,
         qualityScore: 1,
-        strategyUsed: `auto-original-fallback-${profile.kind}-${mode}`
+        strategyUsed: `auto-original-fallback-${profile.kind}-${mode}`,
+        // The untouched original only meets a budget if it already fits.
+        metTarget: budgetRequested ? file.size <= (targetBytes as number) : undefined
       });
     }
 
@@ -211,7 +248,9 @@ self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
         chosenFormat: selectedFormat,
         qualityScore: 1,
         bytesSaved: Math.max(0, file.size - selectedBlob.size),
-        strategyUsed: selectedStrategy
+        strategyUsed: selectedStrategy,
+        metTarget: keepOriginal ? (budgetRequested ? false : undefined) : manualCandidate.metTarget,
+        budgetAttempts: keepOriginal ? undefined : manualCandidate.budgetAttempts
       } satisfies WorkerCompressionResponse);
       return;
     }
@@ -220,6 +259,7 @@ self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
     if (!selected) {
       throw new Error('No valid compression candidate was produced.');
     }
+    const selectedEntry = evaluated.find((entry) => entry.blob === selected.blob);
     self.postMessage({
       version: 1,
       id,
@@ -240,7 +280,11 @@ self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
       chosenFormat: selected.format,
       qualityScore: selected.qualityScore,
       bytesSaved: Math.max(0, file.size - selected.blob.size),
-      strategyUsed: selected.strategyUsed
+      strategyUsed: selected.strategyUsed,
+      metTarget: budgetRequested
+        ? (selectedEntry?.metTarget ?? selected.blob.size <= (targetBytes as number))
+        : undefined,
+      budgetAttempts: selectedEntry?.budgetAttempts
     };
 
     self.postMessage(response);

@@ -43,6 +43,12 @@ export interface WorkerCompressionRequest {
   outputFormat: OutputFormat;
   mode: OptimizationMode;
   profileHint?: Partial<ImageProfile>;
+  /**
+   * Optional byte budget. When set (and > 0), the raster output must fit in
+   * this many bytes if the ladder can reach it without going below the quality
+   * floor. `null`/absent means "no budget" — the mode-based ceiling applies.
+   */
+  targetBytes?: number | null;
 }
 
 export interface WorkerCompressionResponse {
@@ -60,6 +66,13 @@ export interface WorkerCompressionResponse {
   qualityScore?: QualityScore;
   bytesSaved?: number;
   strategyUsed?: string;
+  /**
+   * Whether the selected artifact met the request's byte budget. Absent when no
+   * budget was asked for; `false` means the budget could not be met.
+   */
+  metTarget?: boolean;
+  /** How many ladder encodes the selected candidate needed. */
+  budgetAttempts?: number;
   error?: string;
 }
 
@@ -74,4 +87,6 @@ export interface RasterCompressionOptions {
   quality: number;
   mode: OptimizationMode;
   profile: ImageProfile;
+  /** Optional byte budget, forwarded to the budgeted codec path. */
+  targetBytes?: number | null;
 }

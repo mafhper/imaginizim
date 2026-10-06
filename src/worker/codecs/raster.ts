@@ -1,5 +1,6 @@
 import imageCompression from 'browser-image-compression';
 import { blobMatchesFormat } from '../../export/formats';
+import { encodeWithinBudget, BUDGET_DEFAULTS } from '../selection/budget';
 import type { RasterCompressionOptions } from '../types';
 
 const SUPPORT_CACHE = new Map<string, boolean>();
@@ -120,4 +121,78 @@ export async function compressRaster(
   }
 
   return imageCompression(file as File, options);
+}
+
+export interface RasterBudgetResult {
+  blob: Blob;
+  metTarget: boolean;
+  attempts: number;
+  qualityUsed: number;
+}
+
+/**
+ * Renders the source once into a canvas — the **master** — so every ladder step
+ * re-encodes from the same pixels instead of stacking degradation on top of a
+ * previously degraded encode.
+ */
+async function renderMaster(file: Blob, scale: number): Promise<OffscreenCanvas> {
+  const bitmap = await createImageBitmap(file);
+  const width = Math.max(1, Math.round(bitmap.width * Math.max(0.2, scale)));
+  const height = Math.max(1, Math.round(bitmap.height * Math.max(0.2, scale)));
+
+  const canvas = new OffscreenCanvas(width, height);
+  const context = canvas.getContext('2d', { alpha: true });
+
+  if (!context) {
+    bitmap.close();
+    throw new Error('Unable to render image in worker context.');
+  }
+
+  context.drawImage(bitmap, 0, 0, width, height);
+  bitmap.close();
+
+  return canvas;
+}
+
+/**
+ * Encodes a raster artifact that must fit a byte budget.
+ *
+ * This is the byte contract, not a heuristic: the ladder lowers quality until
+ * the encode fits, and reports honestly when it cannot. `metTarget: false`
+ * always carries the smallest attempt, so the caller still gets a usable blob.
+ */
+export async function compressRasterWithinBudget(
+  file: Blob,
+  {
+    targetFormat,
+    scale,
+    quality,
+    targetBytes
+  }: Pick<RasterCompressionOptions, 'targetFormat' | 'scale' | 'quality' | 'targetBytes'> & {
+    targetBytes: number;
+  }
+): Promise<RasterBudgetResult> {
+  if (!(await supportsFormat(targetFormat))) {
+    throw new Error(`Format not supported by this browser: ${targetFormat}`);
+  }
+
+  const master = await renderMaster(file, scale);
+
+  const outcome = await encodeWithinBudget(
+    (stepQuality) => master.convertToBlob({ type: targetFormat, quality: stepQuality }),
+    {
+      targetBytes,
+      startQuality: quality,
+      minQuality: BUDGET_DEFAULTS.minQuality,
+      qualityStep: BUDGET_DEFAULTS.qualityStep,
+      maxAttempts: BUDGET_DEFAULTS.maxAttempts
+    }
+  );
+
+  return {
+    blob: outcome.blob,
+    metTarget: outcome.metTarget,
+    attempts: outcome.attempts,
+    qualityUsed: outcome.quality
+  };
 }

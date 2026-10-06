@@ -23,6 +23,7 @@ interface CompressorViewProps {
   scale: number;
   outputFormat: OutputFormat;
   optimizationMode: OptimizationMode;
+  targetBytes?: number | null;
   density: 'comfort' | 'compact';
   doneCount: number;
   totalSavedBytes: number;
@@ -40,6 +41,7 @@ interface CompressorViewProps {
     scale?: number;
     outputFormat?: OutputFormat;
     optimizationMode?: OptimizationMode;
+    targetBytes?: number | null;
   }) => void;
   onReprocessSelected: () => void;
   onReprocessAll: () => void;
@@ -54,6 +56,7 @@ export function CompressorView(props: CompressorViewProps) {
     scale,
     outputFormat,
     optimizationMode,
+    targetBytes = null,
     density,
     doneCount,
     totalSavedBytes,
@@ -223,6 +226,11 @@ export function CompressorView(props: CompressorViewProps) {
                             <span className="rounded-full border border-white/8 px-1.5 py-px">
                               {isDone ? formatTag(item.chosenFormat) : item.statusLabel}
                             </span>
+                            {isDone && item.metTarget === false ? (
+                              <span className="rounded-full border border-destructive/40 px-1.5 py-px text-destructive">
+                                {t('engine.target_missed')}
+                              </span>
+                            ) : null}
                           </div>
                         </div>
                         <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
@@ -361,6 +369,28 @@ export function CompressorView(props: CompressorViewProps) {
                     <option value="balanced">{t('engine.mode_balanced')}</option>
                     <option value="max-compression">{t('engine.mode_compression')}</option>
                     <option value="max-speed">{t('engine.mode_speed')}</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs text-muted-foreground">
+                    {t('engine.target_size')}
+                  </label>
+                  <select
+                    id="targetSizeSelect"
+                    data-testid="target-size"
+                    value={targetBytes == null ? '' : String(targetBytes)}
+                    onChange={(event) =>
+                      onSettingsChange({
+                        targetBytes: event.target.value === '' ? null : Number(event.target.value)
+                      })
+                    }
+                    className="field-input h-9 text-xs"
+                  >
+                    <option value="">{t('engine.target_none')}</option>
+                    <option value={String(100 * 1024)}>{t('engine.target_100kb')}</option>
+                    <option value={String(200 * 1024)}>{t('engine.target_200kb')}</option>
+                    <option value={String(500 * 1024)}>{t('engine.target_500kb')}</option>
+                    <option value={String(1024 * 1024)}>{t('engine.target_1mb')}</option>
                   </select>
                 </div>
               </div>

@@ -41,6 +41,7 @@ export function HomePage() {
             scale={app.settings.scale}
             outputFormat={app.settings.outputFormat}
             optimizationMode={app.settings.optimizationMode}
+            targetBytes={app.settings.targetBytes ?? null}
             density={app.density}
             doneCount={app.doneCount}
             totalSavedBytes={app.totalSavedBytes}
