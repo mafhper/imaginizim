@@ -18,7 +18,11 @@ export function applyProcessingSettings(
       errorMessage: null,
       blob: null,
       newSize: null,
-      qualityScore: 0,
+      // `null` is "not measured yet". It used to be `0`, which reads as a
+      // measurement of zero similarity rather than the absence of one.
+      qualityScore: null,
+      metTarget: null,
+      metadata: null,
       strategyUsed: record.status === 'queued' ? 'queued' : 'manual-reprocess',
       optimizedObjectUrl: null,
       compressedPreviewUrl: null,

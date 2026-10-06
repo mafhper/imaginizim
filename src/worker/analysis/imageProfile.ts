@@ -102,8 +102,13 @@ function detectAlpha(data: Uint8ClampedArray): boolean {
 export async function analyzeRasterProfile(file: Blob): Promise<ImageProfile> {
   const bitmap = await createImageBitmap(file);
 
+  // ImageBitmap.width/height return 0 after close(). Reading them once, up
+  // front, is what keeps the reported dimensions real on every path below.
+  const width = bitmap.width;
+  const height = bitmap.height;
+
   const sampleMax = 96;
-  const ratio = bitmap.width / bitmap.height || 1;
+  const ratio = width / height || 1;
   const sampleWidth = Math.max(8, Math.round(ratio >= 1 ? sampleMax : sampleMax * ratio));
   const sampleHeight = Math.max(8, Math.round(ratio >= 1 ? sampleMax / ratio : sampleMax));
 
@@ -117,8 +122,8 @@ export async function analyzeRasterProfile(file: Blob): Promise<ImageProfile> {
     bitmap.close();
     return {
       kind: 'photo',
-      width: bitmap.width,
-      height: bitmap.height,
+      width,
+      height,
       hasAlpha: false,
       complexity: 0.25
     };
@@ -134,8 +139,8 @@ export async function analyzeRasterProfile(file: Blob): Promise<ImageProfile> {
 
   return {
     kind: classifyProfile({ hasAlpha, complexity, flatness }),
-    width: bitmap.width,
-    height: bitmap.height,
+    width,
+    height,
     hasAlpha,
     complexity
   };

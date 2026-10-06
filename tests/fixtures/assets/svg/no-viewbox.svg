@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">
+  <title>no viewBox</title>
+  <!--
+    No viewBox, so the intrinsic aspect ratio cannot be recovered from the
+    document. `removeDimensions` on this file makes it scale to nothing
+    meaningful — which is why viewBox preservation has to be an assertion and
+    not a hope.
+  -->
+  <rect x="8" y="8" width="48" height="48" fill="#2f6f4f" />
+</svg>

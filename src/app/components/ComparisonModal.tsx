@@ -122,14 +122,16 @@ export function ComparisonModal(props: ComparisonModalProps) {
       <div className="glass-panel relative z-[1] w-full max-w-6xl overflow-hidden">
         <header className="flex flex-wrap items-start justify-between gap-4 border-b border-border px-5 py-4 md:px-6">
           <div className="min-w-0">
-            <p className="section-label mb-2">Comparação</p>
+            <p className="section-label mb-2">{t('preview.compare_title')}</p>
             <h2 className="font-display truncate text-2xl font-semibold text-foreground">
               {file.file.name}
             </h2>
             <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
               <span className="metric-chip">{formatBytes(file.originalSize)}</span>
               <span className="metric-chip">{formatBytes(finalSize)}</span>
-              <span className="metric-chip text-primary">{savingsPercent}% economizado</span>
+              <span className="metric-chip text-primary">
+                {savingsPercent}% {t('preview.saved')}
+              </span>
             </div>
           </div>
           <Button

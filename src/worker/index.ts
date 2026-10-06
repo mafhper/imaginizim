@@ -1,9 +1,15 @@
 import { analyzeRasterProfile } from './analysis/imageProfile';
 import { estimateQualityScore } from './analysis/quality';
-import { compressRaster, convertSvgToRasterBlob } from './codecs/raster';
+import {
+  compressRaster,
+  compressRasterWithinBudget,
+  convertSvgToRasterBlob
+} from './codecs/raster';
 import { optimizeSvgBlob } from './codecs/svg';
+import { finalizeArtifact, readFindings } from './metadata/finalize';
 import { blobMatchesFormat } from '../export/formats';
 import { buildCandidates, getQualityThreshold } from './selection/strategy';
+import { selectAutomatic, selectManual, type Selection } from './selection/select';
 import type { ImageProfile, WorkerCompressionRequest, WorkerCompressionResponse } from './types';
 
 function createVectorProfile(): ImageProfile {
@@ -28,6 +34,12 @@ function withHint(profile: ImageProfile, hint?: Partial<ImageProfile>): ImagePro
   };
 }
 
+interface CandidateOutput {
+  blob: Blob;
+  metTarget?: boolean;
+  budgetAttempts?: number;
+}
+
 async function runCandidate(
   file: File,
   requestId: string,
@@ -38,17 +50,34 @@ async function runCandidate(
   scale: number,
   profile: ImageProfile,
   progressBase: number,
-  progressSpan: number
-): Promise<Blob> {
+  progressSpan: number,
+  targetBytes: number | null
+): Promise<CandidateOutput> {
   if (targetFormat === 'image/svg+xml') {
-    return optimizeSvgBlob(file, mode);
+    const blob = await optimizeSvgBlob(file, mode);
+    return { blob };
   }
 
   if (originalType === 'image/svg+xml') {
-    return convertSvgToRasterBlob(file, targetFormat, scale, quality);
+    const blob = await convertSvgToRasterBlob(file, targetFormat, scale, quality);
+    return { blob };
   }
 
-  return compressRaster(file, {
+  if (typeof targetBytes === 'number' && targetBytes > 0) {
+    const budgeted = await compressRasterWithinBudget(file, {
+      targetFormat,
+      scale,
+      quality,
+      targetBytes
+    });
+    return {
+      blob: budgeted.blob,
+      metTarget: budgeted.metTarget,
+      budgetAttempts: budgeted.attempts
+    };
+  }
+
+  const blob = await compressRaster(file, {
     targetFormat,
     scale,
     quality,
@@ -65,13 +94,16 @@ async function runCandidate(
       } satisfies WorkerCompressionResponse);
     }
   });
+  return { blob };
 }
 
 self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
   const payload = event.data;
 
   try {
-    const { file, id, type, quality, scale, outputFormat, mode, profileHint } = payload;
+    const { file, id, type, quality, scale, outputFormat, mode, profileHint, targetBytes } =
+      payload;
+    const budgetRequested = typeof targetBytes === 'number' && targetBytes > 0;
     const isAutomaticSelection = outputFormat === 'auto';
     self.postMessage({
       version: 1,
@@ -96,6 +128,7 @@ self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
 
     const candidates = buildCandidates(type, outputFormat, profile, mode);
     const threshold = getQualityThreshold(mode, profile.kind);
+    const sourceFindings = type === 'image/svg+xml' ? null : await readFindings(file);
     self.postMessage({
       version: 1,
       id,
@@ -108,19 +141,14 @@ self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
     const originalReference =
       isAutomaticSelection && type === 'image/svg+xml' ? await optimizeSvgBlob(file, mode) : file;
 
-    const evaluated: Array<{
-      blob: Blob;
-      format: string;
-      qualityScore: number;
-      strategyUsed: string;
-    }> = [];
+    const evaluated: Selection[] = [];
     let lastCandidateError: unknown = null;
 
     for (const [index, candidate] of candidates.entries()) {
       try {
         const progressBase = 18 + Math.round((index / Math.max(1, candidates.length)) * 58);
         const progressSpan = Math.max(12, Math.round(58 / Math.max(1, candidates.length)));
-        const blob = await runCandidate(
+        const output = await runCandidate(
           file,
           id,
           type,
@@ -130,7 +158,8 @@ self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
           scale,
           profile,
           progressBase,
-          progressSpan
+          progressSpan,
+          targetBytes ?? null
         );
         self.postMessage({
           version: 1,
@@ -140,19 +169,21 @@ self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
           progress: Math.min(94, progressBase + progressSpan),
           stage: isAutomaticSelection ? 'evaluating' : 'encoding-manual'
         } satisfies WorkerCompressionResponse);
-        if (!(await blobMatchesFormat(blob, candidate.format))) {
+        if (!(await blobMatchesFormat(output.blob, candidate.format))) {
           throw new Error(`Encoded blob does not match requested format: ${candidate.format}`);
         }
 
         const qualityScore = isAutomaticSelection
-          ? await estimateQualityScore(originalReference, blob)
+          ? await estimateQualityScore(originalReference, output.blob)
           : 1;
 
         evaluated.push({
-          blob,
+          blob: output.blob,
           format: candidate.format,
           qualityScore,
-          strategyUsed: candidate.strategyUsed
+          strategyUsed: candidate.strategyUsed,
+          metTarget: output.metTarget,
+          budgetAttempts: output.budgetAttempts
         });
       } catch (error) {
         lastCandidateError = error;
@@ -165,7 +196,9 @@ self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
         blob: file,
         format: type,
         qualityScore: 1,
-        strategyUsed: `auto-original-fallback-${profile.kind}-${mode}`
+        strategyUsed: `auto-original-fallback-${profile.kind}-${mode}`,
+        // The untouched original only meets a budget if it already fits.
+        metTarget: budgetRequested ? file.size <= (targetBytes as number) : undefined
       });
     }
 
@@ -176,48 +209,10 @@ self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
       throw new Error('No valid compression candidate was produced.');
     }
 
-    if (!isAutomaticSelection) {
-      const manualCandidate = evaluated[0];
-      const keepOriginal = outputFormat === 'original' && manualCandidate.blob.size >= file.size;
-      const selectedBlob = keepOriginal ? file : manualCandidate.blob;
-      const selectedFormat = keepOriginal ? type : manualCandidate.format;
-      const selectedStrategy = keepOriginal
-        ? `manual-original-retained-${mode}`
-        : manualCandidate.strategyUsed;
+    const selection = isAutomaticSelection
+      ? selectAutomatic(evaluated, threshold, targetBytes ?? null)
+      : selectManual(evaluated[0], outputFormat, type, file, mode, targetBytes ?? null);
 
-      self.postMessage({
-        version: 1,
-        id,
-        kind: 'progress',
-        success: true,
-        progress: 97,
-        stage: 'finalizing'
-      } satisfies WorkerCompressionResponse);
-
-      self.postMessage({
-        version: 1,
-        id,
-        kind: 'result',
-        success: true,
-        blob: selectedBlob,
-        originalSize: file.size,
-        newSize: selectedBlob.size,
-        chosenFormat: selectedFormat,
-        qualityScore: 1,
-        bytesSaved: Math.max(0, file.size - selectedBlob.size),
-        strategyUsed: selectedStrategy
-      } satisfies WorkerCompressionResponse);
-      return;
-    }
-
-    const viable = evaluated
-      .filter((item) => item.qualityScore >= threshold)
-      .sort((a, b) => a.blob.size - b.blob.size);
-
-    const fallback = evaluated.sort(
-      (a, b) => b.qualityScore - a.qualityScore || a.blob.size - b.blob.size
-    )[0];
-    const selected = viable[0] ?? fallback;
     self.postMessage({
       version: 1,
       id,
@@ -227,21 +222,37 @@ self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
       stage: 'finalizing'
     } satisfies WorkerCompressionResponse);
 
-    const response: WorkerCompressionResponse = {
+    const finalized = await finalizeArtifact(selection.blob);
+    const artifactClean = finalized.artifactFindings
+      ? !(
+          finalized.artifactFindings.exif ||
+          finalized.artifactFindings.xmp ||
+          finalized.artifactFindings.text
+        )
+      : true;
+
+    self.postMessage({
       version: 1,
       id,
       kind: 'result',
       success: true,
-      blob: selected.blob,
+      blob: finalized.blob,
       originalSize: file.size,
-      newSize: selected.blob.size,
-      chosenFormat: selected.format,
-      qualityScore: selected.qualityScore,
-      bytesSaved: Math.max(0, file.size - selected.blob.size),
-      strategyUsed: selected.strategyUsed
-    };
-
-    self.postMessage(response);
+      newSize: finalized.blob.size,
+      chosenFormat: selection.format,
+      qualityScore: selection.qualityScore,
+      bytesSaved: Math.max(0, file.size - finalized.blob.size),
+      strategyUsed: selection.strategyUsed,
+      metTarget: selection.metTarget,
+      budgetAttempts: selection.budgetAttempts,
+      metadata: sourceFindings
+        ? {
+            source: sourceFindings,
+            clean: artifactClean,
+            exifKeptForOrientation: finalized.exifKeptForOrientation
+          }
+        : undefined
+    } satisfies WorkerCompressionResponse);
   } catch (error) {
     const response: WorkerCompressionResponse = {
       version: 1,

@@ -62,7 +62,8 @@ function defaultSettings(): RecordSettings {
     quality: 0.78,
     scale: 1,
     outputFormat: 'original',
-    optimizationMode: 'balanced'
+    optimizationMode: 'balanced',
+    targetBytes: null
   };
 }
 
@@ -113,6 +114,8 @@ function asProcessedRecord(record: QueueRecord): ProcessedFileRecord {
     newSize: record.newSize,
     chosenFormat: record.chosenFormat,
     qualityScore: record.qualityScore,
+    metTarget: record.metTarget,
+    metadata: record.metadata,
     strategyUsed: record.strategyUsed,
     sourceObjectUrl: record.sourceObjectUrl,
     optimizedObjectUrl: record.optimizedObjectUrl
@@ -198,7 +201,14 @@ export function CompressionProvider({ children }: PropsWithChildren) {
           blob: response.blob,
           newSize: response.newSize ?? response.blob.size,
           chosenFormat: response.chosenFormat ?? response.blob.type,
-          qualityScore: response.qualityScore ?? record.qualityScore,
+          // Distinguish "the worker said it could not measure" (`null`) from
+          // "the field was absent" (`undefined`). `??` collapses both and
+          // would silently resurrect the previous record's score.
+          qualityScore:
+            response.qualityScore === undefined ? record.qualityScore : response.qualityScore,
+          metTarget:
+            response.metTarget === undefined ? (record.metTarget ?? null) : response.metTarget,
+          metadata: response.metadata === undefined ? (record.metadata ?? null) : response.metadata,
           strategyUsed: response.strategyUsed ?? record.strategyUsed,
           optimizedObjectUrl: optimizedUrl,
           compressedPreviewUrl: optimizedUrl,
@@ -291,7 +301,8 @@ export function CompressionProvider({ children }: PropsWithChildren) {
         quality: target.settings.quality,
         scale: target.settings.scale,
         outputFormat: target.settings.outputFormat,
-        mode: target.settings.optimizationMode
+        mode: target.settings.optimizationMode,
+        targetBytes: target.settings.targetBytes ?? null
       });
 
       if (activeTimeoutRef.current) {
@@ -308,7 +319,7 @@ export function CompressionProvider({ children }: PropsWithChildren) {
                   ...record,
                   status: 'error',
                   progress: 0,
-                  errorMessage: 'O processamento demorou demais. Tente WebP ou reduza a escala.',
+                  errorMessage: t('engine.error_timeout'),
                   statusLabel: t('engine.status_error')
                 }
           )
@@ -369,7 +380,9 @@ export function CompressionProvider({ children }: PropsWithChildren) {
           newSize: null,
           chosenFormat:
             baseSettings.outputFormat === 'original' ? file.type : baseSettings.outputFormat,
-          qualityScore: 0,
+          qualityScore: null,
+          metTarget: null,
+          metadata: null,
           strategyUsed: 'queued',
           sourceObjectUrl: previewUrl,
           optimizedObjectUrl: null,

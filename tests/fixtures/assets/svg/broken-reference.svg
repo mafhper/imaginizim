@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>broken reference</title>
+  <!--
+    A BAD file, on purpose. `url(#missing)` resolves to nothing, so the rect
+    renders as if it had no fill at all.
+
+    Reference integrity is a validation error, not a warning: an optimiser
+    that renames or removes ids has to prove it did not break the graph.
+  -->
+  <rect x="8" y="8" width="48" height="48" fill="url(#does-not-exist)" />
+</svg>

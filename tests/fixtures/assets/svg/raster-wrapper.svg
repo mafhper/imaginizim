@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>raster wrapper: structurally an SVG, visually a bitmap</title>
+  <!--
+    A perfectly valid SVG whose visible content is raster. It must NOT be
+    reported as invalid — that is a category error. It is a raster wrapper,
+    and the useful question is "what can be done with the raster", not
+    "why did SVGO strip it".
+  -->
+  <image
+    x="0"
+    y="0"
+    width="64"
+    height="64"
+    href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxIiBoZWlnaHQ9IjEiPjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiMyZjdmNGYiLz48L3N2Zz4="
+  />
+</svg>

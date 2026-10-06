@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>pure vector with a mask</title>
+  <defs>
+    <mask id="m" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
+      <rect x="0" y="0" width="64" height="64" fill="#fff" />
+      <circle cx="32" cy="32" r="14" fill="#000" />
+    </mask>
+  </defs>
+  <rect x="0" y="0" width="64" height="64" fill="#2f6f4f" mask="url(#m)" />
+</svg>

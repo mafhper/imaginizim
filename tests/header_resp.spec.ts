@@ -8,8 +8,8 @@ const BREAKPOINTS = [
 ];
 
 const PAGES = [
-  { name: 'home', url: 'http://127.0.0.1:4321/imaginizim/' },
-  { name: 'about', url: 'http://127.0.0.1:4321/imaginizim/sobre' }
+  { name: 'home', url: 'http://127.0.0.1:5190/imaginizim/' },
+  { name: 'about', url: 'http://127.0.0.1:5190/imaginizim/sobre' }
 ];
 
 test.describe('Header Responsiveness', () => {

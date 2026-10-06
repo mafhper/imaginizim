@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>external references</title>
+  <!--
+    Two dependencies that break the moment the file travels to another machine
+    or another folder. Optimising this "successfully" would ship a file that
+    renders as blank, which is the worst outcome available.
+  -->
+  <style>
+    .t {
+      fill: #2f6f4f;
+    }
+  </style>
+  <path class="t" d="M8 8h48v48H8z" />
+  <image x="0" y="0" width="16" height="16" href="https://example.invalid/logo.png" />
+</svg>
