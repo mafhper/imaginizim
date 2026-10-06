@@ -119,9 +119,12 @@ export interface Artifact {
   errorMessage?: string;
 }
 
+export type DeliveryMode = 'single' | 'directory' | 'zip';
+
 export interface DeliveryPlan {
-  artifacts: Artifact[];
-  mode: 'individual' | 'directory' | 'zip';
+  mode: DeliveryMode;
+  /** The artifacts the plan refers to, by id. */
+  artifactIds: string[];
 }
 
 export const DEFAULT_NAMING: NamingRule = { pattern: '{basename}.{ext}' };
