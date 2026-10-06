@@ -23,6 +23,7 @@ export function applyProcessingSettings(
       qualityScore: null,
       metTarget: null,
       metadata: null,
+      svg: null,
       strategyUsed: record.status === 'queued' ? 'queued' : 'manual-reprocess',
       optimizedObjectUrl: null,
       compressedPreviewUrl: null,

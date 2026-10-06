@@ -35,7 +35,7 @@ export function exportFileNameForRecord(record: ProcessedFileRecord): string {
 }
 
 export async function detectImageFormat(blob: Blob): Promise<string | null> {
-  const bytes = new Uint8Array(await blob.slice(0, 32).arrayBuffer());
+  const bytes = new Uint8Array(await blob.slice(0, 1024).arrayBuffer());
 
   if (
     bytes.length >= 8 &&
@@ -66,11 +66,21 @@ export async function detectImageFormat(blob: Blob): Promise<string | null> {
     }
   }
 
-  if (blob.type === 'image/svg+xml') {
+  // SVG has no magic bytes, so it is verified by content — an `<svg>` root in
+  // the head. Trusting `blob.type` here made the check a tautology: it validated
+  // the type the encoder had just written, not the bytes.
+  if (looksLikeSvg(bytes)) {
     return 'image/svg+xml';
   }
 
   return null;
+}
+
+function looksLikeSvg(bytes: Uint8Array): boolean {
+  let head = '';
+  for (let i = 0; i < bytes.length; i += 1) head += String.fromCharCode(bytes[i]);
+  // Strip a UTF-8 BOM so a BOM-prefixed document is still recognised.
+  return /<svg[\s>]/i.test(head.replace(/^\uFEFF/, ''));
 }
 
 export async function blobMatchesFormat(blob: Blob, expectedFormat: string): Promise<boolean> {

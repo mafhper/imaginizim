@@ -5,6 +5,7 @@ import {
   Eye,
   Plus,
   RefreshCcw,
+  Shapes,
   ShieldCheck,
   Trash2,
   Wand2
@@ -12,6 +13,7 @@ import {
 import { useMemo, type ReactNode } from 'react';
 import { formatBytes } from '../../../utils/bytes';
 import type { OptimizationMode, OutputFormat, WorkerMetadataReport } from '../../../types';
+import type { SvgAnalysis, SvgComposition } from '../../../domain/svg';
 import { t } from '../../../i18n';
 import type { QueueRecord } from '../../types';
 import { cn } from '../../utils/ui';
@@ -290,6 +292,7 @@ export function CompressorView(props: CompressorViewProps) {
                         </p>
                       ) : null}
                       {isDone && item.metadata ? <MetadataLine report={item.metadata} /> : null}
+                      {isDone && item.svg ? <SvgLine analysis={item.svg} /> : null}
                     </div>
                   </article>
                 );
@@ -472,6 +475,30 @@ function MetadataLine({ report }: { report: WorkerMetadataReport }) {
       {report.clean
         ? `${t('engine.meta_removed')}: ${joined}`
         : `${joined} · ${t('engine.meta_kept_orientation')}`}
+    </p>
+  );
+}
+
+function compositionKey(composition: SvgComposition): string {
+  return `engine.svg_${composition.replaceAll('-', '_')}`;
+}
+
+function SvgLine({ analysis }: { analysis: SvgAnalysis }) {
+  if (!analysis.parse.valid) {
+    return (
+      <p className="mt-1.5 flex items-center gap-1 text-[11px] text-destructive">
+        <AlertCircle className="h-3 w-3" /> {t('engine.svg_invalid')}
+      </p>
+    );
+  }
+
+  const label = t(compositionKey(analysis.composition));
+  const risks = analysis.risks.length;
+
+  return (
+    <p className="mt-1.5 flex items-center gap-1 text-[11px] text-muted-foreground">
+      <Shapes className="h-3 w-3 text-primary" />
+      {risks > 0 ? `${label} · ${risks} ${t('engine.svg_attention')}` : label}
     </p>
   );
 }
