@@ -6,6 +6,8 @@
  * them, which made every contract change a two-file edit that nothing policed.
  */
 
+import type { MetadataFindings } from './metadata/metadata';
+
 /**
  * Measured similarity between a candidate and its source, or `null` when it
  * could not be measured.
@@ -73,7 +75,19 @@ export interface WorkerCompressionResponse {
   metTarget?: boolean;
   /** How many ladder encodes the selected candidate needed. */
   budgetAttempts?: number;
+  /**
+   * Metadata report: what the original carried (`source`) and whether the
+   * delivered artifact is clean. `clean: false` with `exifKeptForOrientation`
+   * means EXIF was kept on purpose to preserve the orientation.
+   */
+  metadata?: WorkerMetadataReport;
   error?: string;
+}
+
+export interface WorkerMetadataReport {
+  source: MetadataFindings;
+  clean: boolean;
+  exifKeptForOrientation: boolean;
 }
 
 export interface CompressionCandidate {

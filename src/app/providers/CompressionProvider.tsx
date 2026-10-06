@@ -115,6 +115,7 @@ function asProcessedRecord(record: QueueRecord): ProcessedFileRecord {
     chosenFormat: record.chosenFormat,
     qualityScore: record.qualityScore,
     metTarget: record.metTarget,
+    metadata: record.metadata,
     strategyUsed: record.strategyUsed,
     sourceObjectUrl: record.sourceObjectUrl,
     optimizedObjectUrl: record.optimizedObjectUrl
@@ -207,6 +208,7 @@ export function CompressionProvider({ children }: PropsWithChildren) {
             response.qualityScore === undefined ? record.qualityScore : response.qualityScore,
           metTarget:
             response.metTarget === undefined ? (record.metTarget ?? null) : response.metTarget,
+          metadata: response.metadata === undefined ? (record.metadata ?? null) : response.metadata,
           strategyUsed: response.strategyUsed ?? record.strategyUsed,
           optimizedObjectUrl: optimizedUrl,
           compressedPreviewUrl: optimizedUrl,
@@ -380,6 +382,7 @@ export function CompressionProvider({ children }: PropsWithChildren) {
             baseSettings.outputFormat === 'original' ? file.type : baseSettings.outputFormat,
           qualityScore: null,
           metTarget: null,
+          metadata: null,
           strategyUsed: 'queued',
           sourceObjectUrl: previewUrl,
           optimizedObjectUrl: null,

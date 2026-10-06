@@ -22,6 +22,7 @@ export function applyProcessingSettings(
       // measurement of zero similarity rather than the absence of one.
       qualityScore: null,
       metTarget: null,
+      metadata: null,
       strategyUsed: record.status === 'queued' ? 'queued' : 'manual-reprocess',
       optimizedObjectUrl: null,
       compressedPreviewUrl: null,

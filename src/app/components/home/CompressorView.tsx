@@ -5,12 +5,13 @@ import {
   Eye,
   Plus,
   RefreshCcw,
+  ShieldCheck,
   Trash2,
   Wand2
 } from 'lucide-react';
 import { useMemo, type ReactNode } from 'react';
 import { formatBytes } from '../../../utils/bytes';
-import type { OptimizationMode, OutputFormat } from '../../../types';
+import type { OptimizationMode, OutputFormat, WorkerMetadataReport } from '../../../types';
 import { t } from '../../../i18n';
 import type { QueueRecord } from '../../types';
 import { cn } from '../../utils/ui';
@@ -287,6 +288,7 @@ export function CompressorView(props: CompressorViewProps) {
                           <AlertCircle className="h-3 w-3" /> {item.errorMessage ?? 'Erro'}
                         </p>
                       ) : null}
+                      {isDone && item.metadata ? <MetadataLine report={item.metadata} /> : null}
                     </div>
                   </article>
                 );
@@ -447,6 +449,30 @@ function formatTag(format: string) {
   if (format === 'image/svg+xml') return 'SVG';
   if (format === 'auto' || format === 'original') return format.toUpperCase();
   return format.replace('image/', '').toUpperCase();
+}
+
+function metadataLabels(report: WorkerMetadataReport): string[] {
+  const labels: string[] = [];
+  if (report.source.gps) labels.push(t('engine.meta_gps'));
+  if (report.source.exif) labels.push(t('engine.meta_exif'));
+  if (report.source.xmp) labels.push(t('engine.meta_xmp'));
+  if (report.source.text) labels.push(t('engine.meta_text'));
+  return labels;
+}
+
+function MetadataLine({ report }: { report: WorkerMetadataReport }) {
+  const labels = metadataLabels(report);
+  if (labels.length === 0) return null;
+
+  const joined = labels.join(', ');
+  return (
+    <p className="mt-1.5 flex items-center gap-1 text-[11px] text-muted-foreground">
+      <ShieldCheck className="h-3 w-3 text-primary" />
+      {report.clean
+        ? `${t('engine.meta_removed')}: ${joined}`
+        : `${joined} · ${t('engine.meta_kept_orientation')}`}
+    </p>
+  );
 }
 
 function IconButton({

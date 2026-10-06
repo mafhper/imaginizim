@@ -11,10 +11,11 @@ export type {
   QualityScore,
   RasterCompressionOptions,
   WorkerCompressionRequest,
-  WorkerCompressionResponse
+  WorkerCompressionResponse,
+  WorkerMetadataReport
 } from './worker/types';
 
-import type { QualityScore } from './worker/types';
+import type { QualityScore, WorkerMetadataReport } from './worker/types';
 
 export type FileStatus = 'queued' | 'processing' | 'done' | 'error';
 export type PreviewMode = 'split' | 'overlay';
@@ -37,6 +38,8 @@ export interface ProcessedFileRecord {
    * the engine could produce.
    */
   metTarget?: boolean | null;
+  /** Metadata the source carried and whether the delivered file is clean. */
+  metadata?: WorkerMetadataReport | null;
   strategyUsed: string;
   sourceObjectUrl: string;
   optimizedObjectUrl: string | null;
