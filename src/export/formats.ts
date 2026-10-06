@@ -1,19 +1,9 @@
 import type { ProcessedFileRecord } from '../types';
+import { extensionForMimeType } from '../domain/format';
 
-const EXTENSION_BY_MIME = new Map<string, string>([
-  ['image/jpeg', 'jpg'],
-  ['image/jpg', 'jpg'],
-  ['image/png', 'png'],
-  ['image/webp', 'webp'],
-  ['image/avif', 'avif'],
-  ['image/svg+xml', 'svg']
-]);
+export { extensionForMimeType };
 
 const IMAGE_EXTENSION_PATTERN = /\.(?:avif|jpe?g|png|svg|webp)$/i;
-
-export function extensionForMimeType(mimeType: string): string | null {
-  return EXTENSION_BY_MIME.get(mimeType.toLowerCase()) ?? null;
-}
 
 export function exportFileName(
   originalName: string,
