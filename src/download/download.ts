@@ -1,19 +1,30 @@
 import { downloadBlob } from '../utils/downloadBlob';
-import { exportFileNameForRecord } from '../export/formats';
-import type { ProcessedFileRecord } from '../types';
 
-export async function downloadZip(files: ProcessedFileRecord[]): Promise<boolean> {
-  const doneFiles = files.filter((record) => record.blob);
-  if (doneFiles.length === 0) return false;
+export interface ZipEntry {
+  name: string;
+  blob: Blob;
+}
+
+/**
+ * Builds and downloads a ZIP from named blobs.
+ *
+ * It no longer knows about records or compression — it only knows entries. ZIP
+ * is one delivery strategy, not a property of the compressor.
+ */
+export async function downloadZip(
+  entries: ZipEntry[],
+  zipName = 'imaginizim-optimized-images.zip'
+): Promise<boolean> {
+  if (entries.length === 0) return false;
 
   const { default: JSZip } = await import('jszip');
   const zip = new JSZip();
-  doneFiles.forEach((record) => {
-    zip.file(exportFileNameForRecord(record), record.blob as Blob);
+  entries.forEach((entry) => {
+    zip.file(entry.name, entry.blob);
   });
 
   const content = await zip.generateAsync({ type: 'blob' });
-  downloadBlob(content, 'imaginizim-optimized-images.zip');
+  downloadBlob(content, zipName);
 
   return true;
 }

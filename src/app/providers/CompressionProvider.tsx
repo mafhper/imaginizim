@@ -9,10 +9,10 @@ import {
   type PropsWithChildren
 } from 'react';
 import { createWorkerClient, type WorkerClient } from '../../compression/workerClient';
-import { downloadZip } from '../../download/download';
+import { deliverArtifacts } from '../../download/delivery';
 import { exportFileNameForRecord } from '../../export/formats';
 import { t } from '../../i18n';
-import type { PreviewMode, ProcessedFileRecord, WorkerCompressionResponse } from '../../types';
+import type { PreviewMode, WorkerCompressionResponse } from '../../types';
 import { downloadBlob } from '../../utils/downloadBlob';
 import { createId } from '../../utils/id';
 import type { ComparisonState, QueueRecord, RecordSettings } from '../types';
@@ -101,26 +101,6 @@ function processingStageLabel(stage?: WorkerCompressionResponse['stage']) {
   if (stage === 'evaluating') return t('engine.stage_evaluating');
   if (stage === 'finalizing') return t('engine.stage_finalizing');
   return t('engine.status_processing');
-}
-
-function asProcessedRecord(record: QueueRecord): ProcessedFileRecord {
-  return {
-    id: record.id,
-    file: record.file,
-    status: record.status,
-    selected: record.selected,
-    blob: record.blob,
-    originalSize: record.originalSize,
-    newSize: record.newSize,
-    chosenFormat: record.chosenFormat,
-    qualityScore: record.qualityScore,
-    metTarget: record.metTarget,
-    metadata: record.metadata,
-    svg: record.svg,
-    strategyUsed: record.strategyUsed,
-    sourceObjectUrl: record.sourceObjectUrl,
-    optimizedObjectUrl: record.optimizedObjectUrl
-  };
 }
 
 export function CompressionProvider({ children }: PropsWithChildren) {
@@ -519,7 +499,12 @@ export function CompressionProvider({ children }: PropsWithChildren) {
   );
 
   const downloadAll = useCallback(async () => {
-    await downloadZip(files.map(asProcessedRecord));
+    const artifacts = files.flatMap((record) =>
+      record.blob
+        ? [{ id: record.id, name: exportFileNameForRecord(record), blob: record.blob }]
+        : []
+    );
+    await deliverArtifacts(artifacts, 'zip');
   }, [files]);
 
   const doneFiles = useMemo(() => files.filter((record) => record.status === 'done'), [files]);
