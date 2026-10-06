@@ -14,6 +14,7 @@
     "lighthouse": "npm run build && node scripts/run-lighthouse.mjs all",
     "lighthouse:desktop": "node scripts/run-lighthouse.mjs desktop",
     "lighthouse:mobile": "node scripts/run-lighthouse.mjs mobile",
+    "smoke": "npm run build && node scripts/smoke-app.mjs dist",
     "format:check": "prettier --check . --ignore-path .gitignore",
     "lint": "eslint \"src/**/*.{ts,tsx,js}\" \"tests/**/*.{ts,js}\" \"vite.config.js\" \"vitest.config.ts\" \"eslint.config.js\" \"tailwind.config.js\"",
     "test": "vitest run -c vitest.config.ts",

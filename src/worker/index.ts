@@ -6,16 +6,11 @@ import {
   convertSvgToRasterBlob
 } from './codecs/raster';
 import { optimizeSvgBlob } from './codecs/svg';
-import { scanMetadata, stripPrivacyMetadata, type MetadataFindings } from './metadata/metadata';
+import { finalizeArtifact, readFindings } from './metadata/finalize';
 import { blobMatchesFormat } from '../export/formats';
 import { buildCandidates, getQualityThreshold } from './selection/strategy';
-import { chooseCandidate } from './selection/choose';
-import type {
-  ImageProfile,
-  QualityScore,
-  WorkerCompressionRequest,
-  WorkerCompressionResponse
-} from './types';
+import { selectAutomatic, selectManual, type Selection } from './selection/select';
+import type { ImageProfile, WorkerCompressionRequest, WorkerCompressionResponse } from './types';
 
 function createVectorProfile(): ImageProfile {
   return {
@@ -102,116 +97,6 @@ async function runCandidate(
   return { blob };
 }
 
-async function readFindings(blob: Blob): Promise<MetadataFindings | null> {
-  try {
-    const scan = scanMetadata(new Uint8Array(await blob.arrayBuffer()));
-    return scan.format === 'unknown' ? null : scan.findings;
-  } catch {
-    return null;
-  }
-}
-
-interface FinalizedArtifact {
-  blob: Blob;
-  exifKeptForOrientation: boolean;
-  artifactFindings: MetadataFindings | null;
-}
-
-/**
- * Applies the metadata policy to whichever artifact was chosen: privacy out
- * (EXIF/XMP/text/comments), ICC and a real EXIF orientation in.
- *
- * It runs on every raster artifact, so the guarantee does not depend on which
- * path produced it — the re-encode path is already clean, and the
- * retained-original path is the one that would otherwise keep everything.
- */
-async function finalizeArtifact(blob: Blob): Promise<FinalizedArtifact> {
-  try {
-    const bytes = new Uint8Array(await blob.arrayBuffer());
-    const scan = scanMetadata(bytes);
-    if (scan.format === 'unknown') {
-      return { blob, exifKeptForOrientation: false, artifactFindings: null };
-    }
-
-    const strip = stripPrivacyMetadata(bytes);
-    if (strip.removed === 0) {
-      return {
-        blob,
-        exifKeptForOrientation: strip.exifKeptForOrientation,
-        artifactFindings: scan.findings
-      };
-    }
-
-    return {
-      blob: new Blob([strip.bytes.slice()], { type: blob.type }),
-      exifKeptForOrientation: strip.exifKeptForOrientation,
-      artifactFindings: scanMetadata(strip.bytes).findings
-    };
-  } catch {
-    return { blob, exifKeptForOrientation: false, artifactFindings: null };
-  }
-}
-
-interface Selection {
-  blob: Blob;
-  format: string;
-  qualityScore: QualityScore;
-  strategyUsed: string;
-  metTarget?: boolean;
-  budgetAttempts?: number;
-}
-
-function selectManual(
-  manualCandidate: Selection,
-  outputFormat: WorkerCompressionRequest['outputFormat'],
-  originalType: string,
-  file: File,
-  mode: WorkerCompressionRequest['mode'],
-  budgetRequested: boolean
-): Selection {
-  const keepOriginal = outputFormat === 'original' && manualCandidate.blob.size >= file.size;
-  if (keepOriginal) {
-    return {
-      blob: file,
-      format: originalType,
-      qualityScore: 1,
-      strategyUsed: `manual-original-retained-${mode}`,
-      metTarget: budgetRequested ? false : undefined
-    };
-  }
-  return {
-    blob: manualCandidate.blob,
-    format: manualCandidate.format,
-    qualityScore: 1,
-    strategyUsed: manualCandidate.strategyUsed,
-    metTarget: manualCandidate.metTarget,
-    budgetAttempts: manualCandidate.budgetAttempts
-  };
-}
-
-function selectAutomatic(
-  evaluated: Selection[],
-  threshold: number,
-  budgetRequested: boolean,
-  targetBytes: number | null
-): Selection {
-  const selected = chooseCandidate(evaluated, threshold);
-  if (!selected) {
-    throw new Error('No valid compression candidate was produced.');
-  }
-  const entry = evaluated.find((item) => item.blob === selected.blob);
-  return {
-    blob: selected.blob,
-    format: selected.format,
-    qualityScore: selected.qualityScore,
-    strategyUsed: selected.strategyUsed,
-    metTarget: budgetRequested
-      ? (entry?.metTarget ?? selected.blob.size <= (targetBytes as number))
-      : undefined,
-    budgetAttempts: entry?.budgetAttempts
-  };
-}
-
 self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
   const payload = event.data;
 
@@ -256,14 +141,7 @@ self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
     const originalReference =
       isAutomaticSelection && type === 'image/svg+xml' ? await optimizeSvgBlob(file, mode) : file;
 
-    const evaluated: Array<{
-      blob: Blob;
-      format: string;
-      qualityScore: QualityScore;
-      strategyUsed: string;
-      metTarget?: boolean;
-      budgetAttempts?: number;
-    }> = [];
+    const evaluated: Selection[] = [];
     let lastCandidateError: unknown = null;
 
     for (const [index, candidate] of candidates.entries()) {
@@ -332,8 +210,8 @@ self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
     }
 
     const selection = isAutomaticSelection
-      ? selectAutomatic(evaluated, threshold, budgetRequested, targetBytes ?? null)
-      : selectManual(evaluated[0], outputFormat, type, file, mode, budgetRequested);
+      ? selectAutomatic(evaluated, threshold, targetBytes ?? null)
+      : selectManual(evaluated[0], outputFormat, type, file, mode, targetBytes ?? null);
 
     self.postMessage({
       version: 1,

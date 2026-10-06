@@ -178,6 +178,25 @@ describe('stripPrivacyMetadata', () => {
     expect(result.removed).toBe(2); // EXIF + COM
   });
 
+  it('keeps PNG EXIF when it carries an orientation other than 1', () => {
+    const bytes = png(
+      pngChunk('IHDR', [0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0]),
+      pngChunk('eXIf', tiff({ orientation: 6 })),
+      pngChunk('tEXt', [...ascii('Comment'), 0, ...ascii('hello')]),
+      pngChunk('IDAT', [1, 2, 3]),
+      pngChunk('IEND', [])
+    );
+
+    const result = stripPrivacyMetadata(bytes);
+    const after = scanMetadata(result.bytes);
+
+    expect(result.exifKeptForOrientation).toBe(true);
+    expect(after.findings.exif).toBe(true);
+    expect(after.findings.orientation).toBe(6);
+    expect(after.findings.text).toBe(false);
+    expect(result.removed).toBe(1); // only the tEXt
+  });
+
   it('leaves bytes it cannot parse untouched', () => {
     const bytes = new Uint8Array([9, 9, 9, 9]);
 

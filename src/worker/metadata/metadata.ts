@@ -175,7 +175,8 @@ function scanPng(bytes: Uint8Array, chunks: PngChunk[]): MetadataScan {
       const tiff = parseTiff(bytes, chunk.dataStart, chunk.dataEnd);
       if (tiff.gps) findings.gps = true;
       if (tiff.orientation !== null) findings.orientation = tiff.orientation;
-      removable += 1;
+      // Matches the stripper: EXIF kept for its orientation is not removable.
+      if (tiff.orientation === null || tiff.orientation === 1) removable += 1;
     } else if (chunk.type === 'tEXt' || chunk.type === 'zTXt' || chunk.type === 'iTXt') {
       findings.text = true;
       if (pngChunkIsXmp(bytes, chunk)) findings.xmp = true;

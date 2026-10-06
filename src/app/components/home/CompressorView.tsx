@@ -285,7 +285,8 @@ export function CompressorView(props: CompressorViewProps) {
                       ) : null}
                       {item.status === 'error' ? (
                         <p className="mt-1.5 flex items-center gap-1 text-[11px] text-destructive">
-                          <AlertCircle className="h-3 w-3" /> {item.errorMessage ?? 'Erro'}
+                          <AlertCircle className="h-3 w-3" />{' '}
+                          {item.errorMessage ?? t('engine.status_error')}
                         </p>
                       ) : null}
                       {isDone && item.metadata ? <MetadataLine report={item.metadata} /> : null}
@@ -409,7 +410,7 @@ export function CompressorView(props: CompressorViewProps) {
                 </Button>
                 {totalSavedBytes > 0 && (
                   <p className="mt-2 text-center text-xs text-muted-foreground">
-                    Economizado:{' '}
+                    {t('actions.total_saved')}{' '}
                     <span className="text-primary font-medium">
                       {formatBytes(totalSavedBytes)} ({savingsPercent.toFixed(1)}%)
                     </span>
