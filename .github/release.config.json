@@ -1,0 +1,27 @@
+{
+  "release": {
+    "title": "Imaginizim",
+    "tagline": "Compressão local de imagens — privacidade, formato e tamanho sob controle.",
+    "language": "pt-BR",
+    "image": {
+      "path": "docs/images/releases/release.webp",
+      "required": true,
+      "granularity": "minor"
+    },
+    "notes": {
+      "granularity": "tag"
+    },
+    "sections": {
+      "usage": "## Uso\n\nAcesse a versão publicada em:\n\n**[mafhper.github.io/imaginizim](https://mafhper.github.io/imaginizim)**\n\nPara desenvolvimento local:\n\n```bash\ngit clone https://github.com/mafhper/imaginizim.git\ncd imaginizim\nnpm ci\nnpm run dev\n```\n\nO app roda 100% no navegador: nenhuma imagem sai do computador."
+    }
+  },
+  "build": {
+    "package_manager": "npm",
+    "node": "22.22.1",
+    "gates": ["npm run check"],
+    "command": "npm run build"
+  },
+  "versions": {
+    "files": []
+  }
+}
