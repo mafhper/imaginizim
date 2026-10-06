@@ -7,6 +7,7 @@
  */
 
 import type { MetadataFindings } from './metadata/metadata';
+import type { SvgAnalysis } from '../domain/svg';
 
 /**
  * Measured similarity between a candidate and its source, or `null` when it
@@ -81,6 +82,8 @@ export interface WorkerCompressionResponse {
    * means EXIF was kept on purpose to preserve the orientation.
    */
   metadata?: WorkerMetadataReport;
+  /** Present for SVG sources: the structural analysis of the file. */
+  svg?: SvgAnalysis;
   error?: string;
 }
 

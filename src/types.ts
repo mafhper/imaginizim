@@ -16,6 +16,7 @@ export type {
 } from './worker/types';
 
 import type { QualityScore, WorkerMetadataReport } from './worker/types';
+import type { SvgAnalysis } from './domain/svg';
 
 export type FileStatus = 'queued' | 'processing' | 'done' | 'error';
 export type PreviewMode = 'split' | 'overlay';
@@ -40,6 +41,8 @@ export interface ProcessedFileRecord {
   metTarget?: boolean | null;
   /** Metadata the source carried and whether the delivered file is clean. */
   metadata?: WorkerMetadataReport | null;
+  /** Structural analysis, present for SVG sources. */
+  svg?: SvgAnalysis | null;
   strategyUsed: string;
   sourceObjectUrl: string;
   optimizedObjectUrl: string | null;

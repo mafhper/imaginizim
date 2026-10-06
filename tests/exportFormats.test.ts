@@ -64,6 +64,26 @@ describe('image format detection', () => {
     await expect(blobMatchesFormat(blob, 'image/webp')).resolves.toBe(false);
     await expect(blobMatchesFormat(blob, 'image/png')).resolves.toBe(false);
   });
+
+  it('detects svg by its content, not by the declared type', async () => {
+    const svg = new Blob(
+      ['<?xml version="1.0"?>\n<svg xmlns="http://www.w3.org/2000/svg"></svg>'],
+      {
+        type: 'image/svg+xml'
+      }
+    );
+
+    await expect(detectImageFormat(svg)).resolves.toBe('image/svg+xml');
+    await expect(blobMatchesFormat(svg, 'image/svg+xml')).resolves.toBe(true);
+  });
+
+  it('rejects a blob that claims svg but is not svg', async () => {
+    // The old detector trusted `blob.type`, so this passed as SVG.
+    const liar = new Blob([new Uint8Array([1, 2, 3, 4])], { type: 'image/svg+xml' });
+
+    await expect(detectImageFormat(liar)).resolves.toBeNull();
+    await expect(blobMatchesFormat(liar, 'image/svg+xml')).resolves.toBe(false);
+  });
 });
 
 function riffWebpBytes(): number[] {

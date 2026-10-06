@@ -116,6 +116,7 @@ function asProcessedRecord(record: QueueRecord): ProcessedFileRecord {
     qualityScore: record.qualityScore,
     metTarget: record.metTarget,
     metadata: record.metadata,
+    svg: record.svg,
     strategyUsed: record.strategyUsed,
     sourceObjectUrl: record.sourceObjectUrl,
     optimizedObjectUrl: record.optimizedObjectUrl
@@ -209,6 +210,7 @@ export function CompressionProvider({ children }: PropsWithChildren) {
           metTarget:
             response.metTarget === undefined ? (record.metTarget ?? null) : response.metTarget,
           metadata: response.metadata === undefined ? (record.metadata ?? null) : response.metadata,
+          svg: response.svg === undefined ? (record.svg ?? null) : response.svg,
           strategyUsed: response.strategyUsed ?? record.strategyUsed,
           optimizedObjectUrl: optimizedUrl,
           compressedPreviewUrl: optimizedUrl,
@@ -383,6 +385,7 @@ export function CompressionProvider({ children }: PropsWithChildren) {
           qualityScore: null,
           metTarget: null,
           metadata: null,
+          svg: null,
           strategyUsed: 'queued',
           sourceObjectUrl: previewUrl,
           optimizedObjectUrl: null,

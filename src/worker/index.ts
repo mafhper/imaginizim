@@ -7,6 +7,7 @@ import {
 } from './codecs/raster';
 import { optimizeSvgBlob } from './codecs/svg';
 import { finalizeArtifact, readFindings } from './metadata/finalize';
+import { analyzeSvg } from '../domain/svg';
 import { blobMatchesFormat } from '../export/formats';
 import { buildCandidates, getQualityThreshold } from './selection/strategy';
 import { selectAutomatic, selectManual, type Selection } from './selection/select';
@@ -129,6 +130,7 @@ self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
     const candidates = buildCandidates(type, outputFormat, profile, mode);
     const threshold = getQualityThreshold(mode, profile.kind);
     const sourceFindings = type === 'image/svg+xml' ? null : await readFindings(file);
+    const svgAnalysis = type === 'image/svg+xml' ? analyzeSvg(await file.text()) : null;
     self.postMessage({
       version: 1,
       id,
@@ -251,7 +253,8 @@ self.onmessage = async (event: MessageEvent<WorkerCompressionRequest>) => {
             clean: artifactClean,
             exifKeptForOrientation: finalized.exifKeptForOrientation
           }
-        : undefined
+        : undefined,
+      svg: svgAnalysis ?? undefined
     } satisfies WorkerCompressionResponse);
   } catch (error) {
     const response: WorkerCompressionResponse = {
