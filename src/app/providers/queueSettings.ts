@@ -1,5 +1,15 @@
 import type { QueueRecord, RecordSettings } from '../types';
 
+function primaryFormat(settings: RecordSettings): string {
+  return settings.outputs[0]?.format ?? 'original';
+}
+
+/** The format the first output implies for a given source file. */
+export function primaryChosenFormat(settings: RecordSettings, file: File): string {
+  const format = primaryFormat(settings);
+  return format === 'original' ? file.type : format;
+}
+
 export function applyProcessingSettings(
   records: QueueRecord[],
   targetIds: string[],
@@ -30,7 +40,7 @@ export function applyProcessingSettings(
       compressedPreviewUrl: null,
       statusLabel: queuedStatusLabel,
       settings,
-      chosenFormat: settings.outputFormat === 'original' ? record.file.type : settings.outputFormat
+      chosenFormat: primaryChosenFormat(settings, record.file)
     };
   });
 }

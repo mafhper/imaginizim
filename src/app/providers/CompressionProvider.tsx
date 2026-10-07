@@ -9,7 +9,7 @@ import {
   type PropsWithChildren
 } from 'react';
 import { createWorkerClient, type WorkerClient } from '../../compression/workerClient';
-import { legacySettingsToOutputs } from '../../domain/adapters';
+import { defaultOutputs } from '../../domain/adapters';
 import { planJob } from '../../domain/job';
 import { deliverArtifacts } from '../../download/delivery';
 import { exportFileNameForRecord } from '../../export/formats';
@@ -18,7 +18,7 @@ import type { PreviewMode, WorkerJobResponse } from '../../types';
 import { downloadBlob } from '../../utils/downloadBlob';
 import { createId } from '../../utils/id';
 import type { ComparisonState, QueueRecord, RecordSettings } from '../types';
-import { applyProcessingSettings } from './queueSettings';
+import { applyProcessingSettings, primaryChosenFormat } from './queueSettings';
 
 const QUEUE_DENSITY_KEY = 'imaginizim.queue-density';
 const PROCESS_TIMEOUT_MS = 45000;
@@ -60,13 +60,7 @@ interface CompressionContextValue {
 const CompressionContext = createContext<CompressionContextValue | null>(null);
 
 function defaultSettings(): RecordSettings {
-  return {
-    quality: 0.78,
-    scale: 1,
-    outputFormat: 'original',
-    optimizationMode: 'balanced',
-    targetBytes: null
-  };
+  return { outputs: defaultOutputs() };
 }
 
 function getStoredDensity(): QueueDensity {
@@ -299,7 +293,7 @@ export function CompressionProvider({ children }: PropsWithChildren) {
         jobId: target.id,
         file: target.file,
         type: target.file.type,
-        outputs: legacySettingsToOutputs(target.settings)
+        outputs: target.settings.outputs
       });
 
       if (activeTimeoutRef.current) {
@@ -375,8 +369,7 @@ export function CompressionProvider({ children }: PropsWithChildren) {
           blob: null,
           originalSize: file.size,
           newSize: null,
-          chosenFormat:
-            baseSettings.outputFormat === 'original' ? file.type : baseSettings.outputFormat,
+          chosenFormat: primaryChosenFormat(baseSettings, file),
           qualityScore: null,
           metTarget: null,
           metadata: null,
@@ -517,10 +510,7 @@ export function CompressionProvider({ children }: PropsWithChildren) {
   const downloadAll = useCallback(async () => {
     const entries = files.flatMap((record) => {
       if (record.artifacts && record.artifacts.length > 0) {
-        const planned = planJob(
-          { name: record.file.name },
-          legacySettingsToOutputs(record.settings)
-        );
+        const planned = planJob({ name: record.file.name }, record.settings.outputs);
         return record.artifacts.flatMap((artifact) => {
           if (!artifact.blob) return [];
           const name =
