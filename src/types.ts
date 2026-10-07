@@ -10,12 +10,14 @@ export type {
   OutputFormat,
   QualityScore,
   RasterCompressionOptions,
-  WorkerCompressionRequest,
-  WorkerCompressionResponse,
+  WorkerArtifact,
+  WorkerJobRequest,
+  WorkerJobResponse,
+  WorkerJobSource,
   WorkerMetadataReport
 } from './worker/types';
 
-import type { QualityScore, WorkerMetadataReport } from './worker/types';
+import type { QualityScore, WorkerArtifact, WorkerMetadataReport } from './worker/types';
 import type { SvgAnalysis } from './domain/svg';
 
 export type FileStatus = 'queued' | 'processing' | 'done' | 'error';
@@ -43,6 +45,8 @@ export interface ProcessedFileRecord {
   metadata?: WorkerMetadataReport | null;
   /** Structural analysis, present for SVG sources. */
   svg?: SvgAnalysis | null;
+  /** Every artifact the job produced; the record's own fields mirror the first done one. */
+  artifacts?: WorkerArtifact[] | null;
   strategyUsed: string;
   sourceObjectUrl: string;
   optimizedObjectUrl: string | null;

@@ -1,5 +1,5 @@
 import { chooseCandidate } from './choose';
-import type { QualityScore, WorkerCompressionRequest } from '../types';
+import type { OptimizationMode, OutputFormat, QualityScore } from '../types';
 
 /**
  * The final choice, plus the budget verdict. This is the piece the worker used
@@ -21,10 +21,10 @@ function budgetRequested(targetBytes: number | null): boolean {
 
 export function selectManual(
   manualCandidate: Selection,
-  outputFormat: WorkerCompressionRequest['outputFormat'],
+  outputFormat: OutputFormat,
   originalType: string,
   file: File,
-  mode: WorkerCompressionRequest['mode'],
+  mode: OptimizationMode,
   targetBytes: number | null
 ): Selection {
   const keepOriginal = outputFormat === 'original' && manualCandidate.blob.size >= file.size;

@@ -24,6 +24,7 @@ export function applyProcessingSettings(
       metTarget: null,
       metadata: null,
       svg: null,
+      artifacts: null,
       strategyUsed: record.status === 'queued' ? 'queued' : 'manual-reprocess',
       optimizedObjectUrl: null,
       compressedPreviewUrl: null,

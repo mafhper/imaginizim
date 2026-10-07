@@ -9,10 +9,12 @@ import {
   type PropsWithChildren
 } from 'react';
 import { createWorkerClient, type WorkerClient } from '../../compression/workerClient';
+import { legacySettingsToOutputs } from '../../domain/adapters';
+import { planJob } from '../../domain/job';
 import { deliverArtifacts } from '../../download/delivery';
 import { exportFileNameForRecord } from '../../export/formats';
 import { t } from '../../i18n';
-import type { PreviewMode, WorkerCompressionResponse } from '../../types';
+import type { PreviewMode, WorkerJobResponse } from '../../types';
 import { downloadBlob } from '../../utils/downloadBlob';
 import { createId } from '../../utils/id';
 import type { ComparisonState, QueueRecord, RecordSettings } from '../types';
@@ -94,7 +96,7 @@ function statusText(record: QueueRecord) {
   return `${savedPercent}%`;
 }
 
-function processingStageLabel(stage?: WorkerCompressionResponse['stage']) {
+function processingStageLabel(stage?: WorkerJobResponse['stage']) {
   if (stage === 'analyzing') return t('engine.stage_analyzing');
   if (stage === 'encoding') return t('engine.stage_encoding');
   if (stage === 'encoding-manual') return t('engine.stage_encoding_manual');
@@ -135,11 +137,11 @@ export function CompressionProvider({ children }: PropsWithChildren) {
     filesRef.current = files;
   }, [files]);
 
-  const handleWorkerMessage = useCallback((response: WorkerCompressionResponse) => {
+  const handleWorkerMessage = useCallback((response: WorkerJobResponse) => {
     if (response.kind === 'progress') {
       setFiles((prev) =>
         prev.map((record) =>
-          record.id !== response.id || record.status !== 'processing'
+          record.id !== response.jobId || record.status !== 'processing'
             ? record
             : {
                 ...record,
@@ -158,13 +160,18 @@ export function CompressionProvider({ children }: PropsWithChildren) {
 
     setFiles((prev) =>
       prev.map((record) => {
-        if (record.id !== response.id) return record;
+        if (record.id !== response.jobId) return record;
 
-        if (!response.success || !response.blob) {
+        const artifacts = response.artifacts ?? null;
+        const primary =
+          artifacts?.find((artifact) => artifact.status === 'done' && artifact.blob) ?? null;
+
+        if (response.error || !primary || !primary.blob) {
           return {
             ...record,
             status: 'error',
             progress: 0,
+            artifacts,
             errorMessage: response.error ?? t('engine.error_fallback'),
             statusLabel: t('engine.status_error')
           };
@@ -174,32 +181,43 @@ export function CompressionProvider({ children }: PropsWithChildren) {
           URL.revokeObjectURL(record.compressedPreviewUrl);
         }
 
-        const optimizedUrl = URL.createObjectURL(response.blob);
+        const optimizedUrl = URL.createObjectURL(primary.blob);
+        const newSize = primary.newSize ?? primary.blob.size;
+        const findings = primary.metadata?.findings ?? null;
+        const metadata = response.source?.metadata
+          ? {
+              source: response.source.metadata,
+              clean: findings ? !(findings.exif || findings.xmp || findings.text) : true,
+              exifKeptForOrientation: primary.metadata?.exifKeptForOrientation ?? false
+            }
+          : (record.metadata ?? null);
+
         return {
           ...record,
           status: 'done',
           progress: 100,
-          blob: response.blob,
-          newSize: response.newSize ?? response.blob.size,
-          chosenFormat: response.chosenFormat ?? response.blob.type,
+          blob: primary.blob,
+          newSize,
+          chosenFormat: primary.format,
           // Distinguish "the worker said it could not measure" (`null`) from
           // "the field was absent" (`undefined`). `??` collapses both and
           // would silently resurrect the previous record's score.
           qualityScore:
-            response.qualityScore === undefined ? record.qualityScore : response.qualityScore,
+            primary.qualityScore === undefined ? record.qualityScore : primary.qualityScore,
           metTarget:
-            response.metTarget === undefined ? (record.metTarget ?? null) : response.metTarget,
-          metadata: response.metadata === undefined ? (record.metadata ?? null) : response.metadata,
-          svg: response.svg === undefined ? (record.svg ?? null) : response.svg,
-          strategyUsed: response.strategyUsed ?? record.strategyUsed,
+            primary.metTarget === undefined ? (record.metTarget ?? null) : primary.metTarget,
+          metadata,
+          svg: response.source?.svg ?? record.svg ?? null,
+          artifacts,
+          strategyUsed: primary.strategyUsed ?? record.strategyUsed,
           optimizedObjectUrl: optimizedUrl,
           compressedPreviewUrl: optimizedUrl,
           statusLabel: statusText({
             ...record,
             status: 'done',
-            newSize: response.newSize ?? response.blob.size,
-            chosenFormat: response.chosenFormat ?? response.blob.type,
-            blob: response.blob,
+            newSize,
+            chosenFormat: primary.format,
+            blob: primary.blob,
             optimizedObjectUrl: optimizedUrl,
             compressedPreviewUrl: optimizedUrl
           } as QueueRecord)
@@ -275,16 +293,13 @@ export function CompressionProvider({ children }: PropsWithChildren) {
         )
       );
 
-      ensureWorker().process({
-        version: 1,
-        id: target.id,
+      ensureWorker().processJob({
+        version: 2,
+        kind: 'job',
+        jobId: target.id,
         file: target.file,
         type: target.file.type,
-        quality: target.settings.quality,
-        scale: target.settings.scale,
-        outputFormat: target.settings.outputFormat,
-        mode: target.settings.optimizationMode,
-        targetBytes: target.settings.targetBytes ?? null
+        outputs: legacySettingsToOutputs(target.settings)
       });
 
       if (activeTimeoutRef.current) {
@@ -366,6 +381,7 @@ export function CompressionProvider({ children }: PropsWithChildren) {
           metTarget: null,
           metadata: null,
           svg: null,
+          artifacts: null,
           strategyUsed: 'queued',
           sourceObjectUrl: previewUrl,
           optimizedObjectUrl: null,
@@ -499,12 +515,27 @@ export function CompressionProvider({ children }: PropsWithChildren) {
   );
 
   const downloadAll = useCallback(async () => {
-    const artifacts = files.flatMap((record) =>
-      record.blob
+    const entries = files.flatMap((record) => {
+      if (record.artifacts && record.artifacts.length > 0) {
+        const planned = planJob(
+          { name: record.file.name },
+          legacySettingsToOutputs(record.settings)
+        );
+        return record.artifacts.flatMap((artifact) => {
+          if (!artifact.blob) return [];
+          const name =
+            planned.find((item) => item.output.id === artifact.id)?.name ??
+            exportFileNameForRecord(record);
+          return [{ id: `${record.id}:${artifact.id}`, name, blob: artifact.blob }];
+        });
+      }
+
+      return record.blob
         ? [{ id: record.id, name: exportFileNameForRecord(record), blob: record.blob }]
-        : []
-    );
-    await deliverArtifacts(artifacts, 'zip');
+        : [];
+    });
+
+    await deliverArtifacts(entries, 'zip');
   }, [files]);
 
   const doneFiles = useMemo(() => files.filter((record) => record.status === 'done'), [files]);

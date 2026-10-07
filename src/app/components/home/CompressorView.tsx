@@ -293,6 +293,21 @@ export function CompressorView(props: CompressorViewProps) {
                       ) : null}
                       {isDone && item.metadata ? <MetadataLine report={item.metadata} /> : null}
                       {isDone && item.svg ? <SvgLine analysis={item.svg} /> : null}
+                      {isDone && item.artifacts && item.artifacts.length > 1 ? (
+                        <p className="mt-1.5 flex flex-wrap gap-1.5 text-[11px] text-muted-foreground">
+                          {item.artifacts
+                            .filter((artifact) => artifact.status === 'done')
+                            .map((artifact) => (
+                              <span
+                                key={artifact.id}
+                                className="rounded-full border border-white/8 px-1.5 py-px"
+                              >
+                                {formatTag(artifact.format)}
+                                {artifact.newSize ? ` ${formatBytes(artifact.newSize)}` : ''}
+                              </span>
+                            ))}
+                        </p>
+                      ) : null}
                     </div>
                   </article>
                 );
