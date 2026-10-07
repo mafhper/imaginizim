@@ -1,4 +1,5 @@
 import type { OptimizationMode } from '../types';
+import { profileForMode, svgOptionsFor } from './svgProfiles';
 
 const svgoUrl = `${import.meta.env.BASE_URL}svgo.browser.js`;
 
@@ -13,35 +14,12 @@ async function initSvgo(): Promise<void> {
   svgoInitialized = true;
 }
 
-function getSvgOptions(mode: OptimizationMode): object {
-  const floatPrecision = mode === 'max-compression' ? 2 : 3;
-
-  return {
-    multipass: true,
-    js2svg: {
-      indent: 0,
-      pretty: false
-    },
-    plugins: [
-      {
-        name: 'preset-default',
-        params: {
-          overrides: {
-            cleanupNumericValues: {
-              floatPrecision
-            },
-            convertPathData: {
-              floatPrecision
-            }
-          }
-        }
-      },
-      'removeDimensions',
-      'sortAttrs'
-    ]
-  };
-}
-
+/**
+ * Optimizes an SVG under the profile the mode implies.
+ *
+ * The validation lives one layer up (in the job codecs), where the original and
+ * the optimized text are both in hand — this function only transforms.
+ */
 export async function optimizeSvgBlob(file: Blob, mode: OptimizationMode): Promise<Blob> {
   await initSvgo();
 
@@ -50,6 +28,6 @@ export async function optimizeSvgBlob(file: Blob, mode: OptimizationMode): Promi
   }
 
   const text = await file.text();
-  const result = optimizeSvg(text, getSvgOptions(mode));
+  const result = optimizeSvg(text, svgOptionsFor(profileForMode(mode)));
   return new Blob([result.data], { type: 'image/svg+xml' });
 }

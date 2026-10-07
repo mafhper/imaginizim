@@ -54,27 +54,25 @@ export async function runJob(
             stage: 'encoding'
           })
       );
-      const valid = await codecs.validate(result.blob, result.format);
-      const validation = createValidationReport(
-        valid
-          ? []
-          : [
-              {
-                code: 'format-mismatch',
-                severity: 'error',
-                message: `Encoded blob does not match requested format: ${result.format}`,
-                artifactId: output.id
-              }
-            ]
-      );
+      const formatValid = await codecs.validate(result.blob, result.format);
+      const issues = [...(result.validation?.issues ?? [])];
+      if (!formatValid) {
+        issues.unshift({
+          code: 'format-mismatch',
+          severity: 'error',
+          message: `Encoded blob does not match requested format: ${result.format}`,
+          artifactId: output.id
+        });
+      }
+      const validation = createValidationReport(issues);
 
-      if (!valid) {
+      if (!validation.ok) {
         artifacts.push({
           id: output.id,
           format: result.format,
           status: 'error',
           validation,
-          error: `Encoded blob does not match requested format: ${result.format}`
+          error: validation.issues[0]?.message ?? 'Artifact failed validation.'
         });
         continue;
       }

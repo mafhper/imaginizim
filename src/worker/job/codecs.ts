@@ -1,5 +1,5 @@
 import type { ImageProfile, QualityScore } from '../types';
-import type { OutputSpec } from '../../domain/types';
+import type { OutputSpec, ValidationReport } from '../../domain/types';
 import type { MetadataFindings } from '../metadata/metadata';
 import type { FinalizedArtifact } from '../metadata/finalize';
 import type { SvgAnalysis } from '../../domain/svg';
@@ -28,6 +28,8 @@ export interface OutputResult {
   strategyUsed: string;
   metTarget?: boolean;
   budgetAttempts?: number;
+  /** Findings from the codec itself (e.g. SVG validation); merged into the artifact report. */
+  validation?: ValidationReport;
 }
 
 export interface JobCodecs {

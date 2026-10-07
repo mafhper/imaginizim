@@ -3,3 +3,4 @@ export * from './tokenize';
 export * from './structure';
 export * from './classify';
 export * from './analyze';
+export * from './validate';
