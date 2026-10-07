@@ -12,9 +12,13 @@ import {
 } from 'lucide-react';
 import { useMemo, type ReactNode } from 'react';
 import { formatBytes } from '../../../utils/bytes';
-import type { OptimizationMode, OutputFormat, WorkerMetadataReport } from '../../../types';
+import type { WorkerMetadataReport } from '../../../types';
+import type { OutputSpec } from '../../../domain/types';
+import { createOutput } from '../../../domain/adapters';
+import { planJob } from '../../../domain/job';
 import type { SvgAnalysis, SvgComposition } from '../../../domain/svg';
 import { t } from '../../../i18n';
+import { createId } from '../../../utils/id';
 import type { QueueRecord } from '../../types';
 import { cn } from '../../utils/ui';
 import { Button } from '../ui/Button';
@@ -22,11 +26,7 @@ import { Button } from '../ui/Button';
 interface CompressorViewProps {
   files: QueueRecord[];
   selectedId: string | null;
-  quality: number;
-  scale: number;
-  outputFormat: OutputFormat;
-  optimizationMode: OptimizationMode;
-  targetBytes?: number | null;
+  outputs: OutputSpec[];
   density: 'comfort' | 'compact';
   doneCount: number;
   totalSavedBytes: number;
@@ -39,13 +39,7 @@ interface CompressorViewProps {
   onDownloadFile: (id: string) => void;
   onReprocessFile: (id: string) => void;
   onSetDensity: (density: 'comfort' | 'compact') => void;
-  onSettingsChange: (patch: {
-    quality?: number;
-    scale?: number;
-    outputFormat?: OutputFormat;
-    optimizationMode?: OptimizationMode;
-    targetBytes?: number | null;
-  }) => void;
+  onOutputsChange: (outputs: OutputSpec[]) => void;
   onReprocessSelected: () => void;
   onReprocessAll: () => void;
   onDownloadAll: () => Promise<void>;
@@ -55,11 +49,7 @@ export function CompressorView(props: CompressorViewProps) {
   const {
     files,
     selectedId,
-    quality,
-    scale,
-    outputFormat,
-    optimizationMode,
-    targetBytes = null,
+    outputs,
     density,
     doneCount,
     totalSavedBytes,
@@ -72,10 +62,21 @@ export function CompressorView(props: CompressorViewProps) {
     onDownloadFile,
     onReprocessFile,
     onSetDensity,
-    onSettingsChange,
+    onOutputsChange,
     onReprocessAll,
     onDownloadAll
   } = props;
+
+  const previewName =
+    files.find((file) => file.id === selectedId)?.file.name ?? files[0]?.file.name ?? 'image.png';
+  const planned = useMemo(() => planJob({ name: previewName }, outputs), [previewName, outputs]);
+
+  const updateOutput = (id: string, patch: Partial<OutputSpec>) => {
+    onOutputsChange(outputs.map((output) => (output.id === id ? { ...output, ...patch } : output)));
+  };
+  const addOutput = () => {
+    onOutputsChange([...outputs, createOutput(createId())]);
+  };
 
   const totalOriginal = useMemo(
     () => files.reduce((sum, file) => sum + file.originalSize, 0),
@@ -300,6 +301,7 @@ export function CompressorView(props: CompressorViewProps) {
                             .map((artifact) => (
                               <span
                                 key={artifact.id}
+                                data-testid="artifact-badge"
                                 className="rounded-full border border-white/8 px-1.5 py-px"
                               >
                                 {formatTag(artifact.format)}
@@ -324,96 +326,152 @@ export function CompressorView(props: CompressorViewProps) {
                 </h3>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="mb-1.5 flex justify-between text-xs text-muted-foreground">
-                    <span>{t('engine.quality')}</span>
-                    <span>{Math.round(quality * 100)}%</span>
-                  </label>
-                  <input
-                    type="range"
-                    min="35"
-                    max="100"
-                    value={Math.round(quality * 100)}
-                    onChange={(event) =>
-                      onSettingsChange({ quality: Number(event.target.value) / 100 })
-                    }
-                    className="range-input"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-xs text-muted-foreground">
-                    {t('engine.scale')}
-                  </label>
-                  <select
-                    value={String(scale)}
-                    onChange={(event) => onSettingsChange({ scale: Number(event.target.value) })}
-                    className="field-input h-9 text-xs"
-                  >
-                    <option value="0.5">50%</option>
-                    <option value="0.75">75%</option>
-                    <option value="1">100%</option>
-                    <option value="1.5">150%</option>
-                    <option value="2">200%</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-xs text-muted-foreground">
-                    {t('engine.output_format')}
-                  </label>
-                  <select
-                    value={outputFormat}
-                    onChange={(event) =>
-                      onSettingsChange({ outputFormat: event.target.value as OutputFormat })
-                    }
-                    className="field-input h-9 text-xs"
-                  >
-                    <option value="auto">{t('engine.output_auto')}</option>
-                    <option value="original">{t('engine.output_original')}</option>
-                    <option value="image/jpeg">JPEG</option>
-                    <option value="image/png">PNG</option>
-                    <option value="image/webp">WebP</option>
-                    <option value="image/avif">AVIF</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-xs text-muted-foreground">
-                    {t('engine.mode')}
-                  </label>
-                  <select
-                    value={optimizationMode}
-                    onChange={(event) =>
-                      onSettingsChange({ optimizationMode: event.target.value as OptimizationMode })
-                    }
-                    className="field-input h-9 text-xs"
-                  >
-                    <option value="balanced">{t('engine.mode_balanced')}</option>
-                    <option value="max-compression">{t('engine.mode_compression')}</option>
-                    <option value="max-speed">{t('engine.mode_speed')}</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-xs text-muted-foreground">
-                    {t('engine.target_size')}
-                  </label>
-                  <select
-                    id="targetSizeSelect"
-                    data-testid="target-size"
-                    value={targetBytes == null ? '' : String(targetBytes)}
-                    onChange={(event) =>
-                      onSettingsChange({
-                        targetBytes: event.target.value === '' ? null : Number(event.target.value)
-                      })
-                    }
-                    className="field-input h-9 text-xs"
-                  >
-                    <option value="">{t('engine.target_none')}</option>
-                    <option value={String(100 * 1024)}>{t('engine.target_100kb')}</option>
-                    <option value={String(200 * 1024)}>{t('engine.target_200kb')}</option>
-                    <option value={String(500 * 1024)}>{t('engine.target_500kb')}</option>
-                    <option value={String(1024 * 1024)}>{t('engine.target_1mb')}</option>
-                  </select>
-                </div>
+              <div className="space-y-3" data-testid="outputs-editor">
+                {planned.map((item, index) => {
+                  const output = item.output;
+                  return (
+                    <div
+                      key={output.id}
+                      data-testid="output-card"
+                      className="space-y-3 rounded-[8px] border border-border p-3"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-muted-foreground">
+                          {t('engine.output_label')} {index + 1}
+                        </span>
+                        {outputs.length > 1 ? (
+                          <button
+                            type="button"
+                            aria-label={t('engine.output_remove')}
+                            data-testid="remove-output"
+                            className="text-muted-foreground transition-colors hover:text-destructive"
+                            onClick={() =>
+                              onOutputsChange(outputs.filter((o) => o.id !== output.id))
+                            }
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        ) : null}
+                      </div>
+
+                      <div>
+                        <label className="mb-1.5 block text-xs text-muted-foreground">
+                          {t('engine.output_format')}
+                        </label>
+                        <select
+                          aria-label={t('engine.output_format')}
+                          value={output.format}
+                          onChange={(event) =>
+                            updateOutput(output.id, {
+                              format: event.target.value as OutputSpec['format']
+                            })
+                          }
+                          className="field-input h-9 text-xs"
+                        >
+                          <option value="auto">{t('engine.output_auto')}</option>
+                          <option value="original">{t('engine.output_original')}</option>
+                          <option value="image/jpeg">JPEG</option>
+                          <option value="image/png">PNG</option>
+                          <option value="image/webp">WebP</option>
+                          <option value="image/avif">AVIF</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="mb-1.5 flex justify-between text-xs text-muted-foreground">
+                          <span>{t('engine.quality')}</span>
+                          <span>{Math.round((output.quality ?? 0.78) * 100)}%</span>
+                        </label>
+                        <input
+                          type="range"
+                          min="35"
+                          max="100"
+                          value={Math.round((output.quality ?? 0.78) * 100)}
+                          onChange={(event) =>
+                            updateOutput(output.id, { quality: Number(event.target.value) / 100 })
+                          }
+                          className="range-input"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <select
+                          aria-label={t('engine.scale')}
+                          value={String(output.scale ?? 1)}
+                          onChange={(event) =>
+                            updateOutput(output.id, { scale: Number(event.target.value) })
+                          }
+                          className="field-input h-9 text-xs"
+                        >
+                          <option value="0.5">50%</option>
+                          <option value="0.75">75%</option>
+                          <option value="1">100%</option>
+                          <option value="1.5">150%</option>
+                          <option value="2">200%</option>
+                        </select>
+                        <select
+                          aria-label={t('engine.mode')}
+                          value={output.optimizationMode ?? 'balanced'}
+                          onChange={(event) =>
+                            updateOutput(output.id, {
+                              optimizationMode: event.target.value as OutputSpec['optimizationMode']
+                            })
+                          }
+                          className="field-input h-9 text-xs"
+                        >
+                          <option value="balanced">{t('engine.mode_balanced')}</option>
+                          <option value="max-compression">{t('engine.mode_compression')}</option>
+                          <option value="max-speed">{t('engine.mode_speed')}</option>
+                        </select>
+                      </div>
+
+                      <select
+                        aria-label={t('engine.target_size')}
+                        data-testid={index === 0 ? 'target-size' : undefined}
+                        value={output.targetBytes == null ? '' : String(output.targetBytes)}
+                        onChange={(event) =>
+                          updateOutput(output.id, {
+                            targetBytes:
+                              event.target.value === '' ? null : Number(event.target.value)
+                          })
+                        }
+                        className="field-input h-9 text-xs"
+                      >
+                        <option value="">{t('engine.target_none')}</option>
+                        <option value={String(100 * 1024)}>{t('engine.target_100kb')}</option>
+                        <option value={String(200 * 1024)}>{t('engine.target_200kb')}</option>
+                        <option value={String(500 * 1024)}>{t('engine.target_500kb')}</option>
+                        <option value={String(1024 * 1024)}>{t('engine.target_1mb')}</option>
+                      </select>
+
+                      <p
+                        data-testid="output-name"
+                        className="flex items-center gap-1 truncate text-[11px] text-muted-foreground"
+                      >
+                        {item.collision === 'suffix' ? (
+                          <AlertCircle className="h-3 w-3 shrink-0 text-destructive" />
+                        ) : null}
+                        <span className="truncate">{item.name}</span>
+                      </p>
+                      {item.collision === 'suffix' ? (
+                        <p data-testid="output-collision" className="text-[11px] text-destructive">
+                          {t('engine.output_collision')}
+                        </p>
+                      ) : null}
+                    </div>
+                  );
+                })}
+
+                <Button
+                  id="addOutputBtn"
+                  data-testid="add-output"
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={addOutput}
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1.5" /> {t('engine.output_add')}
+                </Button>
               </div>
 
               <div className="pt-2 border-t border-border/70">

@@ -37,11 +37,7 @@ export function HomePage() {
           <CompressorView
             files={app.files}
             selectedId={app.selectedId}
-            quality={app.settings.quality}
-            scale={app.settings.scale}
-            outputFormat={app.settings.outputFormat}
-            optimizationMode={app.settings.optimizationMode}
-            targetBytes={app.settings.targetBytes ?? null}
+            outputs={app.settings.outputs}
             density={app.density}
             doneCount={app.doneCount}
             totalSavedBytes={app.totalSavedBytes}
@@ -54,7 +50,7 @@ export function HomePage() {
             onDownloadFile={app.downloadFile}
             onReprocessFile={app.reprocessFile}
             onSetDensity={app.setDensity}
-            onSettingsChange={app.setSettings}
+            onOutputsChange={(outputs) => app.setSettings({ outputs })}
             onReprocessSelected={app.reprocessSelected}
             onReprocessAll={app.reprocessAll}
             onDownloadAll={app.downloadAll}

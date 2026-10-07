@@ -33,3 +33,30 @@ export function legacySettingsToOutputs(settings: LegacySettings): OutputSpec[] 
     }
   ];
 }
+
+/** The one-output default the composer starts from. */
+export const DEFAULT_LEGACY_SETTINGS: LegacySettings = {
+  quality: 0.78,
+  scale: 1,
+  outputFormat: 'original',
+  optimizationMode: 'balanced',
+  targetBytes: null
+};
+
+export function defaultOutputs(): OutputSpec[] {
+  return legacySettingsToOutputs(DEFAULT_LEGACY_SETTINGS);
+}
+
+/** A fresh output the composer appends, with a stable id. */
+export function createOutput(id: string, format: OutputSpec['format'] = 'image/webp'): OutputSpec {
+  return {
+    id,
+    format,
+    quality: 0.8,
+    scale: 1,
+    optimizationMode: 'balanced',
+    targetBytes: null,
+    naming: DEFAULT_NAMING,
+    destination: DEFAULT_DESTINATION
+  };
+}

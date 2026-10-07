@@ -1,12 +1,9 @@
-import type { OptimizationMode, OutputFormat, PreviewMode, ProcessedFileRecord } from '../types';
+import type { OutputSpec } from '../domain/types';
+import type { PreviewMode, ProcessedFileRecord } from '../types';
 
 export interface RecordSettings {
-  quality: number;
-  scale: number;
-  outputFormat: OutputFormat;
-  optimizationMode: OptimizationMode;
-  /** Byte budget per output; `null`/absent means no budget. */
-  targetBytes?: number | null;
+  /** The outputs the composer asked for. One is the default; many is the point. */
+  outputs: OutputSpec[];
 }
 
 export interface QueueRecord extends ProcessedFileRecord {
