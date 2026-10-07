@@ -412,6 +412,12 @@
     --compare-zoom: 1;
   }
 
+  /* The studio fills its column; the modal keeps the clamp height. */
+  .compare-viewport--stage {
+    height: 100%;
+    border-bottom: 0;
+  }
+
   .compare-image {
     position: absolute;
     inset: 0;
