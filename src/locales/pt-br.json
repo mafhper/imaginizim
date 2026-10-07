@@ -90,6 +90,15 @@
     "local_badge": "Processado no seu computador",
     "value_line": "Rápido, privado e sem burocracia."
   },
+  "workbench": {
+    "queue_title": "Fila",
+    "queue_hint": "Clique numa miniatura para inspecionar.",
+    "empty_title": "Nenhum arquivo escolhido",
+    "empty_desc": "Selecione um arquivo na fila para ver o antes e o depois.",
+    "details": "Detalhes",
+    "artifacts": "Saídas geradas",
+    "expand": "Ampliar"
+  },
   "actions": {
     "preview": "Ver",
     "select_file": "Escolher arquivo",

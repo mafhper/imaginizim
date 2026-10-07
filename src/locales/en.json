@@ -90,6 +90,15 @@
     "local_badge": "Processed on your computer",
     "value_line": "Fast, private and no bureaucracy."
   },
+  "workbench": {
+    "queue_title": "Queue",
+    "queue_hint": "Click a thumbnail to inspect.",
+    "empty_title": "No file selected",
+    "empty_desc": "Pick a file in the queue to see the before and after.",
+    "details": "Details",
+    "artifacts": "Generated outputs",
+    "expand": "Expand"
+  },
   "actions": {
     "preview": "View",
     "select_file": "Choose file",

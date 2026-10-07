@@ -47,11 +47,15 @@ test.describe('Accessibility - Color Contrast', () => {
   test('Compressor Workspace with Files (Dark Mode)', async ({ page }) => {
     await page.goto('http://127.0.0.1:5190/imaginizim/');
 
-    // Inject a mock file into the app state if possible, or just check the empty state surface
-    // Since we can't easily trigger the file picker, we'll check the panel surfaces
+    // The workbench only exists with a file in the queue: load one and process
+    // it, so the scan covers the studio, the queue tiles and the composer.
     await page.evaluate(() => {
       document.documentElement.dataset.theme = 'dark';
     });
+    await page.locator('input[type=file]').first().setInputFiles('public/pwa-192x192.png');
+    await page.waitForSelector('#optimizeQueueBtn', { timeout: 20_000 });
+    await page.locator('#optimizeQueueBtn').click();
+    await page.waitForTimeout(2500);
 
     const accessibilityScanResults = await new AxeBuilder({ page: page as any })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])

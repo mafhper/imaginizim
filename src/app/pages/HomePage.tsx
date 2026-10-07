@@ -42,6 +42,10 @@ export function HomePage() {
             doneCount={app.doneCount}
             totalSavedBytes={app.totalSavedBytes}
             hasProcessedOnce={app.hasProcessedOnce}
+            compareMode={app.comparison.mode}
+            compareSlider={app.comparison.slider}
+            onCompareModeChange={app.setComparisonMode}
+            onCompareSliderChange={app.setComparisonSlider}
             onBack={app.resetSession}
             onFiles={app.addFiles}
             onSelectFile={app.selectFile}

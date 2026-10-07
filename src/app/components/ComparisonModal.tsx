@@ -1,9 +1,10 @@
 import { ChevronLeft, ChevronRight, Download, X } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useEffect } from 'react';
 import { t } from '../../i18n';
 import { formatBytes } from '../../utils/bytes';
 import type { QueueRecord } from '../types';
 import { cn } from '../utils/ui';
+import { CompareSurface } from './CompareSurface';
 import { Button } from './ui/Button';
 
 interface ComparisonModalProps {
@@ -22,6 +23,10 @@ interface ComparisonModalProps {
   onDownload: () => void;
 }
 
+/**
+ * The takeover view. The studio shows the comparison inline; the modal remains
+ * for full-screen inspection and for stepping through the done files.
+ */
 export function ComparisonModal(props: ComparisonModalProps) {
   const {
     open,
@@ -39,19 +44,6 @@ export function ComparisonModal(props: ComparisonModalProps) {
     onDownload
   } = props;
 
-  const viewportRef = useRef<HTMLDivElement | null>(null);
-  const draggingRef = useRef(false);
-
-  const updateSliderFromClientX = useCallback(
-    (clientX: number) => {
-      const rect = viewportRef.current?.getBoundingClientRect();
-      if (!rect || rect.width <= 0) return;
-      const next = ((clientX - rect.left) / rect.width) * 100;
-      onSliderChange(Math.max(0, Math.min(100, Math.round(next))));
-    },
-    [onSliderChange]
-  );
-
   useEffect(() => {
     if (!open) return;
     const handleKey = (event: KeyboardEvent) => {
@@ -63,37 +55,6 @@ export function ComparisonModal(props: ComparisonModalProps) {
     return () => document.removeEventListener('keydown', handleKey);
   }, [onClose, onNext, onPrev, open]);
 
-  useEffect(() => {
-    if (!open) return;
-
-    const handlePointerMove = (event: PointerEvent) => {
-      if (!draggingRef.current) return;
-      updateSliderFromClientX(event.clientX);
-    };
-
-    const handlePointerUp = () => {
-      draggingRef.current = false;
-    };
-
-    window.addEventListener('pointermove', handlePointerMove);
-    window.addEventListener('pointerup', handlePointerUp);
-    window.addEventListener('pointercancel', handlePointerUp);
-
-    return () => {
-      window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('pointerup', handlePointerUp);
-      window.removeEventListener('pointercancel', handlePointerUp);
-    };
-  }, [open, updateSliderFromClientX]);
-
-  const viewportStyle = useMemo(() => {
-    const zoomValue = zoom === 'fit' ? 1 : Number(zoom);
-    return {
-      ['--compare-slider' as string]: `${slider}%`,
-      ['--compare-zoom' as string]: String(zoomValue)
-    };
-  }, [slider, zoom]);
-
   if (!open || !file) return null;
 
   const finalSize = file.newSize ?? file.originalSize;
@@ -101,11 +62,6 @@ export function ComparisonModal(props: ComparisonModalProps) {
     0,
     Math.round(((file.originalSize - finalSize) / file.originalSize) * 100)
   );
-
-  const handleViewportPointerDown = (clientX: number) => {
-    draggingRef.current = true;
-    updateSliderFromClientX(clientX);
-  };
 
   return (
     <div
@@ -213,69 +169,14 @@ export function ComparisonModal(props: ComparisonModalProps) {
           </div>
         </div>
 
-        <div
-          ref={viewportRef}
-          className="compare-viewport"
-          data-mode={mode}
-          style={viewportStyle}
-          onPointerDown={(event) => handleViewportPointerDown(event.clientX)}
-        >
-          <span className="compare-legend compare-legend-left">{t('preview.original')}</span>
-          <span className="compare-legend compare-legend-right">{t('preview.optimized')}</span>
-          <img src={file.previewUrl} alt={t('preview.original')} className="compare-image" />
-          <div
-            className="compare-overlay-wrap"
-            style={mode === 'split' ? { clipPath: `inset(0 0 0 ${slider}%)` } : undefined}
-          >
-            <img
-              src={file.compressedPreviewUrl ?? file.previewUrl}
-              alt={t('preview.optimized')}
-              className="compare-image compare-image-top"
-              style={mode === 'overlay' ? { opacity: slider / 100 } : undefined}
-            />
-          </div>
-
-          {mode === 'split' ? (
-            <button
-              type="button"
-              className="compare-handle compare-handle-split"
-              style={{ left: `${slider}%` }}
-              aria-label={t('preview.slider')}
-              onPointerDown={(event) => {
-                event.stopPropagation();
-                handleViewportPointerDown(event.clientX);
-              }}
-            >
-              <span className="compare-handle-grip" />
-            </button>
-          ) : (
-            <div className="compare-overlay-control">
-              <span className="compare-overlay-text">{t('preview.original')}</span>
-              <div
-                className="compare-overlay-track"
-                onPointerDown={(event) => {
-                  event.stopPropagation();
-                  handleViewportPointerDown(event.clientX);
-                }}
-              >
-                <div className="compare-overlay-fill" style={{ width: `${slider}%` }} />
-                <button
-                  type="button"
-                  className="compare-handle compare-handle-overlay"
-                  style={{ left: `${slider}%` }}
-                  aria-label={t('preview.slider')}
-                  onPointerDown={(event) => {
-                    event.stopPropagation();
-                    handleViewportPointerDown(event.clientX);
-                  }}
-                >
-                  <span className="compare-handle-grip" />
-                </button>
-              </div>
-              <span className="compare-overlay-text">{t('preview.optimized')}</span>
-            </div>
-          )}
-        </div>
+        <CompareSurface
+          originalUrl={file.previewUrl}
+          optimizedUrl={file.compressedPreviewUrl ?? file.previewUrl}
+          mode={mode}
+          slider={slider}
+          zoom={zoom}
+          onSliderChange={onSliderChange}
+        />
 
         <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-border px-5 py-4 md:px-6">
           <p className="text-sm text-muted-foreground">
