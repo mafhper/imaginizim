@@ -37,57 +37,6 @@ export interface ImageProfile {
   complexity: number;
 }
 
-export interface WorkerCompressionRequest {
-  version: 1;
-  id: string;
-  file: File;
-  type: string;
-  quality: number;
-  scale: number;
-  outputFormat: OutputFormat;
-  mode: OptimizationMode;
-  profileHint?: Partial<ImageProfile>;
-  /**
-   * Optional byte budget. When set (and > 0), the raster output must fit in
-   * this many bytes if the ladder can reach it without going below the quality
-   * floor. `null`/absent means "no budget" — the mode-based ceiling applies.
-   */
-  targetBytes?: number | null;
-}
-
-export interface WorkerCompressionResponse {
-  version: 1;
-  id: string;
-  kind?: 'progress' | 'result';
-  success: boolean;
-  progress?: number;
-  stage?: 'analyzing' | 'encoding' | 'encoding-manual' | 'evaluating' | 'finalizing';
-  blob?: Blob;
-  originalSize?: number;
-  newSize?: number;
-  chosenFormat?: string;
-  /** Absent while a candidate is still being encoded. `null` means unmeasurable. */
-  qualityScore?: QualityScore;
-  bytesSaved?: number;
-  strategyUsed?: string;
-  /**
-   * Whether the selected artifact met the request's byte budget. Absent when no
-   * budget was asked for; `false` means the budget could not be met.
-   */
-  metTarget?: boolean;
-  /** How many ladder encodes the selected candidate needed. */
-  budgetAttempts?: number;
-  /**
-   * Metadata report: what the original carried (`source`) and whether the
-   * delivered artifact is clean. `clean: false` with `exifKeptForOrientation`
-   * means EXIF was kept on purpose to preserve the orientation.
-   */
-  metadata?: WorkerMetadataReport;
-  /** Present for SVG sources: the structural analysis of the file. */
-  svg?: SvgAnalysis;
-  error?: string;
-}
-
 export interface WorkerMetadataReport {
   source: MetadataFindings;
   clean: boolean;

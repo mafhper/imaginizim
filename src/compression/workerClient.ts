@@ -1,8 +1,8 @@
-import type { WorkerCompressionRequest, WorkerCompressionResponse } from '../types';
+import type { WorkerJobRequest, WorkerJobResponse } from '../types';
 
 export interface WorkerClient {
-  process: (payload: WorkerCompressionRequest) => void;
-  onMessage: (handler: (response: WorkerCompressionResponse) => void) => void;
+  processJob: (payload: WorkerJobRequest) => void;
+  onMessage: (handler: (response: WorkerJobResponse) => void) => void;
   onError: (handler: (message: string) => void) => void;
   terminate: () => void;
 }
@@ -12,10 +12,10 @@ export function createWorkerClient(): WorkerClient {
     type: 'module'
   });
 
-  let messageHandler: ((response: WorkerCompressionResponse) => void) | null = null;
+  let messageHandler: ((response: WorkerJobResponse) => void) | null = null;
   let errorHandler: ((message: string) => void) | null = null;
 
-  worker.onmessage = (event: MessageEvent<WorkerCompressionResponse>) => {
+  worker.onmessage = (event: MessageEvent<WorkerJobResponse>) => {
     if (!messageHandler) return;
     messageHandler(event.data);
   };
@@ -31,10 +31,10 @@ export function createWorkerClient(): WorkerClient {
   };
 
   return {
-    process(payload: WorkerCompressionRequest) {
+    processJob(payload: WorkerJobRequest) {
       worker.postMessage(payload);
     },
-    onMessage(handler: (response: WorkerCompressionResponse) => void) {
+    onMessage(handler: (response: WorkerJobResponse) => void) {
       messageHandler = handler;
     },
     onError(handler: (message: string) => void) {
