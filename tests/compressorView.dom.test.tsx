@@ -92,11 +92,11 @@ describe('compressor view', () => {
 
   it('offers the density toggle only when there is something in the queue', () => {
     const { unmount } = renderView();
-    expect(screen.getByRole('group')).toBeVisible();
+    expect(screen.getByRole('group', { name: 'Images in queue' })).toBeVisible();
     unmount();
 
     renderView({ files: [] });
-    expect(screen.queryByRole('group')).not.toBeInTheDocument();
+    expect(screen.queryByRole('group', { name: 'Images in queue' })).not.toBeInTheDocument();
   });
 
   it('marks the current density as pressed', () => {

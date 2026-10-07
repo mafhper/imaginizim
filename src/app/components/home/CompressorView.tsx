@@ -326,40 +326,64 @@ export function CompressorView(props: CompressorViewProps) {
                 </h3>
               </div>
 
-              <div className="space-y-3" data-testid="outputs-editor">
+              <div
+                data-testid="outputs-editor"
+                className="app-scrollbar space-y-3 xl:max-h-[380px] xl:overflow-y-auto xl:pr-1"
+              >
                 {planned.map((item, index) => {
                   const output = item.output;
+                  const formatId = `${output.id}-format`;
+                  const qualityId = `${output.id}-quality`;
+                  const scaleId = `${output.id}-scale`;
+                  const modeId = `${output.id}-mode`;
+                  const targetId = `${output.id}-target`;
+                  const chips = advancedChips(output);
+
                   return (
                     <div
                       key={output.id}
                       data-testid="output-card"
                       className="space-y-3 rounded-[8px] border border-border p-3"
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium text-muted-foreground">
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="pt-0.5 text-sm font-medium text-foreground">
                           {t('engine.output_label')} {index + 1}
                         </span>
-                        {outputs.length > 1 ? (
-                          <button
-                            type="button"
-                            aria-label={t('engine.output_remove')}
-                            data-testid="remove-output"
-                            className="text-muted-foreground transition-colors hover:text-destructive"
-                            onClick={() =>
-                              onOutputsChange(outputs.filter((o) => o.id !== output.id))
-                            }
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        ) : null}
+                        <div className="flex items-center gap-1.5">
+                          {chips.map((chip) => (
+                            <span
+                              key={chip}
+                              data-testid="output-advanced-chip"
+                              className="rounded-full border border-white/8 px-1.5 py-px text-[11px] text-muted-foreground"
+                            >
+                              {chip}
+                            </span>
+                          ))}
+                          {outputs.length > 1 ? (
+                            <button
+                              type="button"
+                              aria-label={t('engine.output_remove')}
+                              data-testid="remove-output"
+                              className="text-muted-foreground transition-colors hover:text-destructive"
+                              onClick={() =>
+                                onOutputsChange(outputs.filter((o) => o.id !== output.id))
+                              }
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          ) : null}
+                        </div>
                       </div>
 
                       <div>
-                        <label className="mb-1.5 block text-xs text-muted-foreground">
+                        <label
+                          htmlFor={formatId}
+                          className="mb-1.5 block text-xs text-muted-foreground"
+                        >
                           {t('engine.output_format')}
                         </label>
                         <select
-                          aria-label={t('engine.output_format')}
+                          id={formatId}
                           value={output.format}
                           onChange={(event) =>
                             updateOutput(output.id, {
@@ -378,11 +402,15 @@ export function CompressorView(props: CompressorViewProps) {
                       </div>
 
                       <div>
-                        <label className="mb-1.5 flex justify-between text-xs text-muted-foreground">
+                        <label
+                          htmlFor={qualityId}
+                          className="mb-1.5 flex justify-between text-xs text-muted-foreground"
+                        >
                           <span>{t('engine.quality')}</span>
                           <span>{Math.round((output.quality ?? 0.78) * 100)}%</span>
                         </label>
                         <input
+                          id={qualityId}
                           type="range"
                           min="35"
                           max="100"
@@ -394,55 +422,86 @@ export function CompressorView(props: CompressorViewProps) {
                         />
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2">
-                        <select
-                          aria-label={t('engine.scale')}
-                          value={String(output.scale ?? 1)}
-                          onChange={(event) =>
-                            updateOutput(output.id, { scale: Number(event.target.value) })
-                          }
-                          className="field-input h-9 text-xs"
-                        >
-                          <option value="0.5">50%</option>
-                          <option value="0.75">75%</option>
-                          <option value="1">100%</option>
-                          <option value="1.5">150%</option>
-                          <option value="2">200%</option>
-                        </select>
-                        <select
-                          aria-label={t('engine.mode')}
-                          value={output.optimizationMode ?? 'balanced'}
-                          onChange={(event) =>
-                            updateOutput(output.id, {
-                              optimizationMode: event.target.value as OutputSpec['optimizationMode']
-                            })
-                          }
-                          className="field-input h-9 text-xs"
-                        >
-                          <option value="balanced">{t('engine.mode_balanced')}</option>
-                          <option value="max-compression">{t('engine.mode_compression')}</option>
-                          <option value="max-speed">{t('engine.mode_speed')}</option>
-                        </select>
-                      </div>
-
-                      <select
-                        aria-label={t('engine.target_size')}
-                        data-testid={index === 0 ? 'target-size' : undefined}
-                        value={output.targetBytes == null ? '' : String(output.targetBytes)}
-                        onChange={(event) =>
-                          updateOutput(output.id, {
-                            targetBytes:
-                              event.target.value === '' ? null : Number(event.target.value)
-                          })
-                        }
-                        className="field-input h-9 text-xs"
-                      >
-                        <option value="">{t('engine.target_none')}</option>
-                        <option value={String(100 * 1024)}>{t('engine.target_100kb')}</option>
-                        <option value={String(200 * 1024)}>{t('engine.target_200kb')}</option>
-                        <option value={String(500 * 1024)}>{t('engine.target_500kb')}</option>
-                        <option value={String(1024 * 1024)}>{t('engine.target_1mb')}</option>
-                      </select>
+                      <details>
+                        <summary className="cursor-pointer select-none text-xs text-muted-foreground transition-colors hover:text-foreground">
+                          {t('engine.advanced')}
+                        </summary>
+                        <div className="mt-3 space-y-3">
+                          <div>
+                            <label
+                              htmlFor={scaleId}
+                              className="mb-1.5 block text-xs text-muted-foreground"
+                            >
+                              {t('engine.scale')}
+                            </label>
+                            <select
+                              id={scaleId}
+                              value={String(output.scale ?? 1)}
+                              onChange={(event) =>
+                                updateOutput(output.id, { scale: Number(event.target.value) })
+                              }
+                              className="field-input h-9 text-xs"
+                            >
+                              <option value="0.5">50%</option>
+                              <option value="0.75">75%</option>
+                              <option value="1">100%</option>
+                              <option value="1.5">150%</option>
+                              <option value="2">200%</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label
+                              htmlFor={modeId}
+                              className="mb-1.5 block text-xs text-muted-foreground"
+                            >
+                              {t('engine.mode')}
+                            </label>
+                            <select
+                              id={modeId}
+                              value={output.optimizationMode ?? 'balanced'}
+                              onChange={(event) =>
+                                updateOutput(output.id, {
+                                  optimizationMode: event.target
+                                    .value as OutputSpec['optimizationMode']
+                                })
+                              }
+                              className="field-input h-9 text-xs"
+                            >
+                              <option value="balanced">{t('engine.mode_balanced')}</option>
+                              <option value="max-compression">
+                                {t('engine.mode_compression')}
+                              </option>
+                              <option value="max-speed">{t('engine.mode_speed')}</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label
+                              htmlFor={targetId}
+                              className="mb-1.5 block text-xs text-muted-foreground"
+                            >
+                              {t('engine.target_size')}
+                            </label>
+                            <select
+                              id={targetId}
+                              data-testid={index === 0 ? 'target-size' : undefined}
+                              value={output.targetBytes == null ? '' : String(output.targetBytes)}
+                              onChange={(event) =>
+                                updateOutput(output.id, {
+                                  targetBytes:
+                                    event.target.value === '' ? null : Number(event.target.value)
+                                })
+                              }
+                              className="field-input h-9 text-xs"
+                            >
+                              <option value="">{t('engine.target_none')}</option>
+                              <option value={String(100 * 1024)}>{t('engine.target_100kb')}</option>
+                              <option value={String(200 * 1024)}>{t('engine.target_200kb')}</option>
+                              <option value={String(500 * 1024)}>{t('engine.target_500kb')}</option>
+                              <option value={String(1024 * 1024)}>{t('engine.target_1mb')}</option>
+                            </select>
+                          </div>
+                        </div>
+                      </details>
 
                       <p
                         data-testid="output-name"
@@ -461,18 +520,18 @@ export function CompressorView(props: CompressorViewProps) {
                     </div>
                   );
                 })}
-
-                <Button
-                  id="addOutputBtn"
-                  data-testid="add-output"
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                  onClick={addOutput}
-                >
-                  <Plus className="h-3.5 w-3.5 mr-1.5" /> {t('engine.output_add')}
-                </Button>
               </div>
+
+              <Button
+                id="addOutputBtn"
+                data-testid="add-output"
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={addOutput}
+              >
+                <Plus className="h-3.5 w-3.5 mr-1.5" /> {t('engine.output_add')}
+              </Button>
 
               <div className="pt-2 border-t border-border/70">
                 <Button
@@ -520,6 +579,32 @@ export function CompressorView(props: CompressorViewProps) {
       </div>
     </div>
   );
+}
+
+function modeKey(mode: OutputSpec['optimizationMode']): string {
+  if (mode === 'max-compression') return 'engine.mode_compression';
+  if (mode === 'max-speed') return 'engine.mode_speed';
+  return 'engine.mode_balanced';
+}
+
+/**
+ * Advanced values that differ from the default, as chips on the card header.
+ * A collapsed `Mais opções` must never hide state — the chip is the cue.
+ */
+function advancedChips(output: OutputSpec): string[] {
+  const chips: string[] = [];
+
+  const scale = output.scale ?? 1;
+  if (scale !== 1) chips.push(`${t('engine.scale')} ${Math.round(scale * 100)}%`);
+
+  const mode = output.optimizationMode ?? 'balanced';
+  if (mode !== 'balanced') chips.push(`${t('engine.mode')} ${t(modeKey(mode))}`);
+
+  if (output.targetBytes != null) {
+    chips.push(`${t('engine.target_size')} ${formatBytes(output.targetBytes)}`);
+  }
+
+  return chips;
 }
 
 function formatTag(format: string) {
