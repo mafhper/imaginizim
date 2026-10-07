@@ -7,7 +7,7 @@ import {
 } from '../codecs/raster';
 import { optimizeSvgBlob } from '../codecs/svg';
 import { finalizeArtifact, readFindings } from '../metadata/finalize';
-import { analyzeSvg } from '../../domain/svg';
+import { analyzeSvg, validateSvg } from '../../domain/svg';
 import { blobMatchesFormat } from '../../export/formats';
 import { buildCandidates, getQualityThreshold } from '../selection/strategy';
 import { selectAutomatic, selectManual, type Selection } from '../selection/select';
@@ -169,13 +169,25 @@ export const realCodecs: JobCodecs = {
       ? selectAutomatic(evaluated, threshold, targetBytes)
       : selectManual(evaluated[0], output.format, type, file, mode, targetBytes);
 
+    // SVG gets a real validation: the optimizer must not break references,
+    // drop the viewBox, or introduce a raster/external dependency.
+    const validation =
+      selection.format === 'image/svg+xml'
+        ? validateSvg({
+            original: await file.text(),
+            optimized: await selection.blob.text(),
+            artifactId: output.id
+          })
+        : undefined;
+
     return {
       blob: selection.blob,
       format: selection.format,
       qualityScore: selection.qualityScore,
       strategyUsed: selection.strategyUsed,
       metTarget: selection.metTarget,
-      budgetAttempts: selection.budgetAttempts
+      budgetAttempts: selection.budgetAttempts,
+      validation
     };
   },
 
