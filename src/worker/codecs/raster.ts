@@ -1,6 +1,8 @@
 import imageCompression from 'browser-image-compression';
 import { blobMatchesFormat } from '../../export/formats';
+import { estimateQualityScore } from '../analysis/quality';
 import { encodeWithinBudget, BUDGET_DEFAULTS } from '../selection/budget';
+import { PALETTE_FIDELITY_FLOOR, searchPalettePng, type PaletteSearchResult } from './palettePng';
 import type { RasterCompressionOptions } from '../types';
 
 const SUPPORT_CACHE = new Map<string, boolean>();
@@ -152,6 +154,49 @@ async function renderMaster(file: Blob, scale: number): Promise<OffscreenCanvas>
   bitmap.close();
 
   return canvas;
+}
+
+/**
+ * The palette candidate for PNG: quantize the master's pixels down to an
+ * indexed image and keep it only if it reaches the fidelity floor for this kind
+ * of image.
+ *
+ * It renders through `renderMaster` — the same source of pixels the quality
+ * ladder re-encodes from — and scores with `estimateQualityScore`, so the
+ * decision is measured, not assumed. `null` means "no candidate": no
+ * `CompressionStream`, too much soft transparency, or nothing cleared the floor.
+ * The lossless canvas PNG is always still there, so `null` is safe, not fatal.
+ */
+export async function compressRasterToPalettePng(
+  file: Blob,
+  {
+    scale,
+    profileKind,
+    targetBytes
+  }: {
+    scale: number;
+    profileKind: RasterCompressionOptions['profile']['kind'];
+    targetBytes?: number | null;
+  }
+): Promise<PaletteSearchResult | null> {
+  if (typeof CompressionStream === 'undefined') return null;
+
+  const master = await renderMaster(file, scale);
+  const context = master.getContext('2d', { alpha: true });
+
+  if (!context) return null;
+  const imageData = context.getImageData(0, 0, master.width, master.height);
+
+  return searchPalettePng(
+    imageData.data,
+    master.width,
+    master.height,
+    async (bytes) => estimateQualityScore(file, new Blob([bytes.slice()], { type: 'image/png' })),
+    {
+      floor: PALETTE_FIDELITY_FLOOR[profileKind],
+      targetBytes: targetBytes ?? null
+    }
+  );
 }
 
 /**
