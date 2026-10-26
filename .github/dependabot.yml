@@ -20,6 +20,14 @@ updates:
       typescript-eslint:
         patterns:
           - '@typescript-eslint/*'
+      react:
+        patterns:
+          - 'react'
+          - 'react-dom'
+      playwright:
+        patterns:
+          - 'playwright'
+          - '@playwright/test'
     ignore:
       - dependency-name: 'vite'
         update-types:
