@@ -1,9 +1,13 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
+// The dev server the spec drives. The default is the local one (`npm run dev`);
+// CI overrides it through the environment instead of hardcoding another host.
+const BASE_URL = process.env.IMZ_BASE_URL ?? 'http://127.0.0.1:5190/imaginizim/';
+
 test.describe('Accessibility - Color Contrast', () => {
   test('Home Page (Light Mode)', async ({ page }) => {
-    await page.goto('http://127.0.0.1:5190/imaginizim/');
+    await page.goto(BASE_URL);
     // Force Light Mode
     await page.evaluate(() => {
       document.documentElement.dataset.theme = 'light';
@@ -25,7 +29,7 @@ test.describe('Accessibility - Color Contrast', () => {
   });
 
   test('Home Page (Dark Mode)', async ({ page }) => {
-    await page.goto('http://127.0.0.1:5190/imaginizim/');
+    await page.goto(BASE_URL);
     // Force Dark Mode
     await page.evaluate(() => {
       document.documentElement.dataset.theme = 'dark';
@@ -45,7 +49,7 @@ test.describe('Accessibility - Color Contrast', () => {
   });
 
   test('Compressor Workspace with Files (Dark Mode)', async ({ page }) => {
-    await page.goto('http://127.0.0.1:5190/imaginizim/');
+    await page.goto(BASE_URL);
 
     // The workbench only exists with a file in the queue: load one and process
     // it, so the scan covers the studio, the queue tiles and the composer.
@@ -68,7 +72,7 @@ test.describe('Accessibility - Color Contrast', () => {
   });
 
   test('About Page (Light Mode)', async ({ page }) => {
-    await page.goto('http://127.0.0.1:5190/imaginizim/#/sobre');
+    await page.goto(`${BASE_URL}#/sobre`);
     await page.evaluate(() => {
       document.documentElement.dataset.theme = 'light';
       document.documentElement.style.colorScheme = 'light';
@@ -87,7 +91,7 @@ test.describe('Accessibility - Color Contrast', () => {
   });
 
   test('About Page (Dark Mode)', async ({ page }) => {
-    await page.goto('http://127.0.0.1:5190/imaginizim/#/sobre');
+    await page.goto(`${BASE_URL}#/sobre`);
     await page.evaluate(() => {
       document.documentElement.dataset.theme = 'dark';
       document.documentElement.style.colorScheme = 'dark';
