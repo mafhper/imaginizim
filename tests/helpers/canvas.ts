@@ -107,19 +107,25 @@ export function installCanvasDouble(): () => void {
   }) as typeof createImageBitmap;
 
   globalThis.OffscreenCanvas = class {
+    // A real canvas keeps what was drawn into it across `getContext` calls, and
+    // render-then-read code (`renderMaster` then `getImageData`) depends on it.
+    // Keeping the source per canvas, not per context, is what makes it true here.
+    __source: FakeImage | null = null;
+
     constructor(
       public width: number,
       public height: number
     ) {}
 
     getContext(): FakeContext | null {
-      let current: FakeImage | null = null;
+      const canvas = this;
 
       return {
         drawImage(source: FakeBitmap) {
-          current = source.__source;
+          canvas.__source = source.__source;
         },
         getImageData(_x: number, _y: number, w: number, h: number) {
+          const current = canvas.__source;
           if (!current) {
             throw new Error('getImageData before drawImage');
           }
