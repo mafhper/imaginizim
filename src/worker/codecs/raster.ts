@@ -2,7 +2,12 @@ import imageCompression from 'browser-image-compression';
 import { blobMatchesFormat } from '../../export/formats';
 import { estimateQualityScore } from '../analysis/quality';
 import { encodeWithinBudget, BUDGET_DEFAULTS } from '../selection/budget';
-import { PALETTE_FIDELITY_FLOOR, searchPalettePng, type PaletteSearchResult } from './palettePng';
+import {
+  PALETTE_FIDELITY_FLOOR,
+  paletteWithinBudget,
+  searchPalettePng,
+  type PaletteSearchResult
+} from './palettePng';
 import type { RasterCompressionOptions } from '../types';
 
 const SUPPORT_CACHE = new Map<string, boolean>();
@@ -164,8 +169,9 @@ async function renderMaster(file: Blob, scale: number): Promise<OffscreenCanvas>
  * It renders through `renderMaster` — the same source of pixels the quality
  * ladder re-encodes from — and scores with `estimateQualityScore`, so the
  * decision is measured, not assumed. `null` means "no candidate": no
- * `CompressionStream`, too much soft transparency, or nothing cleared the floor.
- * The lossless canvas PNG is always still there, so `null` is safe, not fatal.
+ * `CompressionStream`, an image above `PALETTE_MAX_PIXELS`, too much soft
+ * transparency, or nothing cleared the floor. The lossless canvas PNG is always
+ * still there, so `null` is safe, not fatal.
  */
 export async function compressRasterToPalettePng(
   file: Blob,
@@ -185,6 +191,10 @@ export async function compressRasterToPalettePng(
   const context = master.getContext('2d', { alpha: true });
 
   if (!context) return null;
+  // Above the budget there is no candidate to score, so the 12 MP pixel copy is
+  // not paid for at all — measured 2026-10-27 at 24 s of pure waste.
+  if (!paletteWithinBudget(master.width, master.height)) return null;
+
   const imageData = context.getImageData(0, 0, master.width, master.height);
 
   return searchPalettePng(

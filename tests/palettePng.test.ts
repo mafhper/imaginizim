@@ -6,6 +6,7 @@ import {
   cubeRepresentative,
   encodePalettePng,
   mapToIndices,
+  paletteWithinBudget,
   quantizeToPalettePng,
   searchPalettePng
 } from '../src/worker/codecs/palettePng';
@@ -329,6 +330,56 @@ describe('encodePalettePng', () => {
     });
 
     expect(bytes).toBeNull();
+  });
+});
+
+describe('palette size budget', () => {
+  it('accepts 4 000 000 pixels and refuses one more', () => {
+    expect(paletteWithinBudget(2000, 2000)).toBe(true);
+    expect(paletteWithinBudget(4_000_000, 1)).toBe(true);
+    expect(paletteWithinBudget(1, 4_000_001)).toBe(false);
+    expect(paletteWithinBudget(2000, 2001)).toBe(false);
+  });
+
+  it('refuses zero and negative dimensions', () => {
+    expect(paletteWithinBudget(0, 100)).toBe(false);
+    expect(paletteWithinBudget(100, 0)).toBe(false);
+    expect(paletteWithinBudget(0, 0)).toBe(false);
+    expect(paletteWithinBudget(-4, -4)).toBe(false);
+  });
+
+  it('skips the encode for an image above the budget', async () => {
+    const compressionStream = vi.fn();
+    vi.stubGlobal('CompressionStream', compressionStream);
+
+    // The pixels are deliberately too few for the declared size: the guard has to
+    // answer before anything looks at them.
+    const result = await quantizeToPalettePng(new Uint8ClampedArray(4), 4000, 1001, {
+      maxColors: 64
+    });
+
+    expect(result).toBeNull();
+    expect(compressionStream).not.toHaveBeenCalled();
+  });
+
+  it('skips the histogram and the ladder above the budget', async () => {
+    let scored = 0;
+
+    // 8 MP: measured 2026-10-27 at 18 s of palette work for a candidate the
+    // fidelity floor then refused.
+    const result = await searchPalettePng(
+      new Uint8ClampedArray(4),
+      3464,
+      2309,
+      async () => {
+        scored += 1;
+        return 1;
+      },
+      { floor: 0.99 }
+    );
+
+    expect(result).toBeNull();
+    expect(scored).toBe(0);
   });
 });
 

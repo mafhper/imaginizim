@@ -31,6 +31,23 @@
 
 import type { ImageKind } from '../types';
 
+/**
+ * Above this size the palette candidate does not pay for itself: measured in
+ * 2026-10-27, the cost grows ~2 s/MP and at 6/8/12 MP it spent 13/18/24 s only
+ * to be refused by the fidelity floor.
+ */
+export const PALETTE_MAX_PIXELS = 4_000_000;
+
+/**
+ * Whether the palette candidate is worth building at all for this size. It is
+ * the single gate — the histogram, the LUT and the encode are all skipped above
+ * the budget, because paying for any of them is paying for a candidate that is
+ * discarded on photo-like content.
+ */
+export function paletteWithinBudget(width: number, height: number): boolean {
+  return width > 0 && height > 0 && width * height <= PALETTE_MAX_PIXELS;
+}
+
 /** Alpha at or below this is treated as fully transparent. */
 export const TRANSPARENT_ALPHA_MAX = 8;
 
@@ -682,7 +699,8 @@ async function quantizeWithScan(
 
 /**
  * Palette PNG for an RGBA buffer, or `null` when the candidate does not apply:
- * no `CompressionStream`, or too much soft transparency for a binary tRNS.
+ * no `CompressionStream`, an image above `PALETTE_MAX_PIXELS`, or too much soft
+ * transparency for a binary tRNS.
  */
 export async function quantizeToPalettePng(
   pixels: Uint8ClampedArray,
@@ -691,6 +709,7 @@ export async function quantizeToPalettePng(
   options: QuantizeOptions
 ): Promise<PalettePngResult | null> {
   if (typeof CompressionStream === 'undefined') return null;
+  if (!paletteWithinBudget(width, height)) return null;
 
   const scan = scanPixels(pixels);
   const total = scan.opaque + scan.transparent;
@@ -758,6 +777,10 @@ function now(): number {
  * An immeasurable score is a rejection, not a pass: "unverified" must never be
  * selected as "good" — the same rule the candidate chooser already follows.
  *
+ * An image above `PALETTE_MAX_PIXELS` returns `null` before the histogram is
+ * built: the scan, the LUT and every encode are skipped, which is the whole
+ * point of the budget.
+ *
  * **The bucket-exact palette is tried first.** When the 5-bit histogram has no
  * more buckets than the quota, every bucket gets its own entry and the encoder
  * skips dithering (a few units per channel — not lossless) — and that breaks the
@@ -776,6 +799,8 @@ export async function searchPalettePng(
   options: PaletteSearchOptions
 ): Promise<PaletteSearchResult | null> {
   const started = now();
+  if (!paletteWithinBudget(width, height)) return null;
+
   const scan = scanPixels(pixels);
   const total = scan.opaque + scan.transparent;
   if (total === 0) return null;
