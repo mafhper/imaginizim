@@ -10,7 +10,8 @@
  * justamente onde o motor será reescrito.
  *
  * Uso (a partir da raiz do repo):
- *   node .dev/tools/smoke-app.mjs <caminho-do-dist>
+ *   npm run smoke                                  # builda o dist e roda este script
+ *   node scripts/smoke-app.mjs <caminho-do-dist>   # com um dist ja construido
  */
 import { createServer } from 'node:http';
 import fs from 'node:fs';

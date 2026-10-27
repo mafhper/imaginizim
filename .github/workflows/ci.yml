@@ -39,3 +39,77 @@ jobs:
 
       - name: Run checks
         run: npm run check
+
+  # Os dois gates que exercitam o worker de verdade (fila, canvas, Chromium) ficavam
+  # fora do CI porque rodavam à mão. Aqui eles rodam em job próprio: `validate`
+  # continua sendo o gate rápido de compilação e teste unitário.
+  e2e:
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22.22.1'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      # O smoke builda o dist, sobe o proprio servidor na 5190 e percorre o fluxo
+      # real (enfileirar, clicar em processar, esperar a seta de tamanho).
+      - name: Smoke (worker de ponta a ponta)
+        run: npm run smoke
+
+      # O a11y.spec.ts navega com um dev server no ar; o default do spec e a 5190.
+      # `set -m` poe o job em grupo de processos proprio -- e o passo `Stop dev
+      # server` mata esse grupo. Sem ele, matar o `npm run dev` deixa o vite (neto)
+      # segurando a porta.
+      - name: Start dev server
+        run: |
+          set -m
+          npm run dev > /tmp/dev-server.log 2>&1 &
+          echo $! > /tmp/dev-server.pid
+
+      - name: Wait for dev server
+        run: |
+          for _ in $(seq 1 60); do
+            if curl -sf -o /dev/null http://127.0.0.1:5190/imaginizim/; then
+              echo 'dev server respondendo na 5190'
+              exit 0
+            fi
+            sleep 1
+          done
+          echo 'dev server nao respondeu em 60s'
+          cat /tmp/dev-server.log
+          exit 1
+
+      - name: Accessibility scan (axe)
+        run: npx playwright test tests/a11y.spec.ts --reporter=line --retries=1
+
+      - name: Stop dev server
+        if: always()
+        run: |
+          if [ -f /tmp/dev-server.pid ]; then
+            pid="$(cat /tmp/dev-server.pid)"
+            kill -- "-$pid" 2>/dev/null || kill "$pid" 2>/dev/null || true
+            rm -f /tmp/dev-server.pid
+          fi
+
+      - name: Upload dev server log
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: dev-server-log
+          path: /tmp/dev-server.log
+          retention-days: 3
+          if-no-files-found: ignore
