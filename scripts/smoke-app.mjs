@@ -86,7 +86,10 @@ const server = await serve();
 const browser = await chromium.launch();
 
 try {
-  const page = await browser.newPage();
+  // O smoke afirma a copia em pt-BR ("Ajustes", "Qualidade", "Formato final" e a ausencia de
+  // "Escala"). Sem locale fixo o Chromium usa o idioma do sistema -- pt-BR na maquina do dono,
+  // en-US no runner do CI -- e o teste passa a depender de quem roda. Medido: en-US => lang="en".
+  const page = await browser.newPage({ locale: 'pt-BR' });
   const consoleErrors = [];
   page.on('console', (m) => {
     if (m.type() === 'error') consoleErrors.push(m.text());
