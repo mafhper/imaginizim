@@ -151,14 +151,23 @@ export interface RasterBudgetResult {
 }
 
 /**
+ * The master's edge at `scale`: rounded, never below 20% of the source and never
+ * below 1 px. `renderMaster` and the palette budget gate both use it, so the
+ * gate judges exactly the canvas that would be rendered.
+ */
+function masterEdge(sourceEdge: number, scale: number): number {
+  return Math.max(1, Math.round(sourceEdge * Math.max(0.2, scale)));
+}
+
+/**
  * Renders the source once into a canvas — the **master** — so every ladder step
  * re-encodes from the same pixels instead of stacking degradation on top of a
  * previously degraded encode.
  */
 async function renderMaster(file: Blob, scale: number): Promise<OffscreenCanvas> {
   const bitmap = await createImageBitmap(file);
-  const width = Math.max(1, Math.round(bitmap.width * Math.max(0.2, scale)));
-  const height = Math.max(1, Math.round(bitmap.height * Math.max(0.2, scale)));
+  const width = masterEdge(bitmap.width, scale);
+  const height = masterEdge(bitmap.height, scale);
 
   const canvas = new OffscreenCanvas(width, height);
   const context = canvas.getContext('2d', { alpha: true });
@@ -175,6 +184,21 @@ async function renderMaster(file: Blob, scale: number): Promise<OffscreenCanvas>
 }
 
 /**
+ * Whether the image at `scale` fits the palette budget, or `undefined` when the
+ * caller did not supply the source dimensions. `paletteWithinBudget` stays the
+ * single authority on the limit; this only maps source pixels to master pixels.
+ */
+function sourceWithinPaletteBudget(
+  width: number | undefined,
+  height: number | undefined,
+  scale: number
+): boolean | undefined {
+  if (typeof width !== 'number' || typeof height !== 'number') return undefined;
+  if (!(width > 0) || !(height > 0)) return undefined;
+  return paletteWithinBudget(masterEdge(width, scale), masterEdge(height, scale));
+}
+
+/**
  * The palette candidate for PNG: quantize the master's pixels down to an
  * indexed image and keep it only if it reaches the fidelity floor for this kind
  * of image.
@@ -185,27 +209,44 @@ async function renderMaster(file: Blob, scale: number): Promise<OffscreenCanvas>
  * `CompressionStream`, an image above `PALETTE_MAX_PIXELS`, too much soft
  * transparency, or nothing cleared the floor. The lossless canvas PNG is always
  * still there, so `null` is safe, not fatal.
+ *
+ * `width`/`height` are the **source** dimensions, when the caller already knows
+ * them (`analyzeSource` measures them for the profile): with them the budget is
+ * answered before the file is decoded.
  */
 export async function compressRasterToPalettePng(
   file: Blob,
   {
     scale,
     profileKind,
-    targetBytes
+    targetBytes,
+    width,
+    height
   }: {
     scale: number;
     profileKind: RasterCompressionOptions['profile']['kind'];
     targetBytes?: number | null;
+    /** Source width, before `scale`. */
+    width?: number;
+    /** Source height, before `scale`. */
+    height?: number;
   }
 ): Promise<PaletteSearchResult | null> {
   if (typeof CompressionStream === 'undefined') return null;
+
+  // The budget gate runs **before** the master (measured 2026-10-27): decoding
+  // and drawing a 12 MP PNG costs 5.4 s, and the answer above `PALETTE_MAX_PIXELS`
+  // is always `null`. The dimensions come from the profile, so they are free.
+  if (sourceWithinPaletteBudget(width, height, scale) === false) return null;
 
   const master = await renderMaster(file, scale);
   const context = master.getContext('2d', { alpha: true });
 
   if (!context) return null;
-  // Above the budget there is no candidate to score, so the 12 MP pixel copy is
-  // not paid for at all — measured 2026-10-27 at 24 s of pure waste.
+  // Above the budget there is no candidate to score, so nothing is paid for:
+  // neither the 12 MP pixel copy (24 s, measured 2026-10-27) nor — since the
+  // caller hands over the source dimensions — the `renderMaster` above. This
+  // gate stays as the backstop for callers that do not.
   if (!paletteWithinBudget(master.width, master.height)) return null;
 
   const imageData = context.getImageData(0, 0, master.width, master.height);

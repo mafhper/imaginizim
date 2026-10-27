@@ -149,7 +149,11 @@ async function runPngCandidate(
     palette = await compressRasterToPalettePng(file, {
       scale,
       profileKind: profile.kind,
-      targetBytes: hasBudget ? targetBytes : null
+      targetBytes: hasBudget ? targetBytes : null,
+      // The profile already measured the source; handing it over lets the budget
+      // gate answer before the file is decoded.
+      width: profile.width,
+      height: profile.height
     });
   } catch (error) {
     // The palette path is optional by contract: a bug there must degrade to the
