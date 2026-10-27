@@ -102,8 +102,20 @@ export async function compressRaster(
     throw new Error(`Format not supported by this browser: ${targetFormat}`);
   }
 
+  // PNG gets one pass at full resolution (measured 2026-10-27). Two behaviours of
+  // `browser-image-compression@2.0.2` made the shared options wrong for it: with a
+  // finite `maxSizeMB` its loop shrinks the canvas by 5% per iteration while it
+  // chases the ceiling — an 8 MP PNG went 3464×2309 → 2819×1879 over 4 iterations,
+  // a downscale the app never asked for, contradicting the explicit `scale`; and its
+  // PNG encoder is seeded with `Math.random()` (UPNG quantizer), so every extra pass
+  // changes the bytes, the hash and the cost (39–149 s at 12 MP, same input). One
+  // pass costs 6.2–6.7 s at 8 MP and 9.8–11.0 s at 12 MP, at full resolution. Cutting
+  // bytes is the palette candidate's job and the `targetBytes` ladder's; `maxIteration`
+  // stays at 1 so the single retry survives for the only reason left — an encode that grew.
+  const isPng = targetFormat === 'image/png';
+
   const options = {
-    maxSizeMB: modeToMaxSize(mode, profile.kind),
+    maxSizeMB: isPng ? Number.POSITIVE_INFINITY : modeToMaxSize(mode, profile.kind),
     maxWidthOrHeight: undefined as number | undefined,
     useWebWorker: false,
     fileType: targetFormat,
@@ -114,7 +126,8 @@ export async function compressRaster(
         quality * modeToQualityMultiplier(mode) * profileQualityBoost(profile.kind, targetFormat)
       )
     ),
-    maxIteration: modeToMaxIteration(mode),
+    maxIteration: isPng ? 1 : modeToMaxIteration(mode),
+    alwaysKeepResolution: isPng,
     onProgress
   };
 
